@@ -311,6 +311,8 @@ impl PortManager {
 
     pub async fn clear_ports(&self, switch: &SwitchConnection) -> Result<(), RBFRTError> {
         switch.clear_table("$PORT").await?;
+
+        Ok(())
     }
 
     pub async fn update_port(&self, switch: &SwitchConnection, request: &Port) -> Result<(), RBFRTError> {
