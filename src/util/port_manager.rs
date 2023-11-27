@@ -26,6 +26,7 @@ use crate::table::{MatchValue, ToBytes};
 use std::{fmt, str};
 use strum_macros::EnumString;
 use std::str::FromStr;
+use log::info;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, EnumString, PartialEq, Deserialize, Serialize)]
@@ -341,8 +342,8 @@ impl PortManager {
 
             let frontpanel_port = self.frontpanel_port(dev_port)?;
 
-            let speed = e.get_action_data("$SPEED")?.get_data().to_string();
-            let auto_neg = e.get_action_data("$AUTO_NEGOTIATION")?.get_data().to_string();
+            let mut speed = e.get_action_data("$SPEED")?.get_data().to_string();
+            let mut auto_neg = e.get_action_data("$AUTO_NEGOTIATION")?.get_data().to_string();
             let mut fec: String = e.get_action_data("$FEC")?.get_data().to_string();
             let enable = e.get_action_data("$PORT_ENABLE")?.get_data().to_bool();
             let status = e.get_action_data("$PORT_UP")?.get_data().to_bool();
@@ -351,6 +352,8 @@ impl PortManager {
             // remove strange ascii char e.g., \u17
             fec.retain(|c| c.is_ascii_graphic());
             loopback.retain(|c| c.is_ascii_graphic());
+            auto_neg.retain(|c| c.is_ascii_graphic());
+            speed.retain(|c| c.is_ascii_graphic());
 
             let p = Port {
                 port: frontpanel_port.0,
