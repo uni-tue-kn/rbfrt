@@ -245,6 +245,7 @@ impl PortManager {
             .action_data("$SPEED", request.speed.to_string())
             .action_data("$FEC", request.fec.to_string())
             .action_data("$PORT_ENABLE", request.enable)
+            .action_data("$AUTO_NEGOTIATION", request.auto_neg.to_string())
             .action_data("$LOOPBACK_MODE", request.loopback.to_string());
 
         switch.write_table_entry(port_req).await?;
@@ -261,6 +262,7 @@ impl PortManager {
                     .action_data("$SPEED", request.speed.to_string())
                     .action_data("$FEC", request.fec.to_string())
                     .action_data("$PORT_ENABLE", request.enable)
+                    .action_data("$AUTO_NEGOTIATION", request.auto_neg.to_string())
                     .action_data("$LOOPBACK_MODE", request.loopback.to_string());
 
                 Ok(req)
@@ -305,6 +307,10 @@ impl PortManager {
         switch.delete_table_entry(port_req).await?;
 
         Ok(())
+    }
+
+    pub async fn clear_ports(&self, switch: &SwitchConnection) -> Result<(), RBFRTError> {
+        switch.clear_table("$PORT").await?;
     }
 
     pub async fn update_port(&self, switch: &SwitchConnection, request: &Port) -> Result<(), RBFRTError> {
