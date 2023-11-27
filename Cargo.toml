@@ -1,6 +1,6 @@
 [package]
 name = "rbfrt"
-version = "0.1.0-alpha"
+version = "0.1.1-alpha"
 authors = ["Steffen Lindner"]
 edition = "2021"
 license = "Apache-2.0"
