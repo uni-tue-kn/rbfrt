@@ -302,6 +302,7 @@ impl BFRTTableObject {
                                                                   MatchType::Exact(e) => { MatchValue::ExactValue { bytes: e.value.clone() } }
                                                                   MatchType::Range(r) => { MatchValue::RangeValue { lower_bytes: r.low.clone(), higher_bytes: r.high.clone() } }
                                                                   MatchType::Lpm(l) => { MatchValue::LPM { bytes: l.value.clone(), prefix_length: l.prefix_len } }
+                                                                  MatchType::Ternary(t) => MatchValue::Ternary { value: t.value.clone(), mask: t.mask.clone() },
                                                                   _ => { MatchValue::ExactValue { bytes: vec![] } }
                                                               });
                                         }
