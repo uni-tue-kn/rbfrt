@@ -17,8 +17,11 @@
  * Steffen Lindner (steffen.lindner@uni-tuebingen.de)
  */
 pub mod port_manager;
+pub mod pretty_printer;
 mod digest;
 
 pub use digest::Digest;
 
 pub use port_manager::PortManager;
+
+pub use pretty_printer::PrettyPrinter;
