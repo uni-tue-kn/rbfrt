@@ -26,7 +26,6 @@ use crate::table::{MatchValue, ToBytes};
 use std::{fmt, str};
 use strum_macros::EnumString;
 use std::str::FromStr;
-use log::info;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, EnumString, PartialEq, Deserialize, Serialize)]
@@ -35,9 +34,11 @@ pub enum Speed {
     BF_SPEED_1G,
     BF_SPEED_10G,
     BF_SPEED_20G,
+    BF_SPEED_25G,
     BF_SPEED_40G,
     BF_SPEED_50G,
     BF_SPEED_100G,
+    BF_SPEED_400G
 }
 
 #[derive(Debug, Clone, EnumString, PartialEq, Deserialize, Serialize)]
