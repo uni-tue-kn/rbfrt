@@ -89,7 +89,7 @@ use crate::bfrt_proto::set_forwarding_pipeline_config_request::{Action, DevInitM
 use crate::error::RBFRTError;
 use crate::error::RBFRTError::{ConnectionError, GetForwardingPipelineError, GRPCError, P4ProgramError, RequestEmpty, UnknownReadResult};
 use crate::register::Register;
-use crate::table::{MatchValue, ToBytes};
+use crate::table::{MatchValue};
 
 use log::{info, warn, debug};
 use tokio::sync::Mutex;
@@ -210,7 +210,7 @@ impl SwitchConnectionBuilder {
                     connection.set_forwarding_pipeline(&connection.config.as_ref().unwrap().clone()).await?;
                 }
 
-                if let None = connection.p4_name {
+                if connection.p4_name.is_none() {
                     panic!("P4 name not set.")
                 }
 
@@ -354,7 +354,7 @@ impl SwitchConnection {
                     }
                 }
 
-                return Err(P4ProgramError { name: self.p4_name.clone().unwrap()})
+                Err(P4ProgramError { name: self.p4_name.clone().unwrap()})
             }
             Err(e) => Err(GetForwardingPipelineError { device_id: self.device_id, client_id: self.client_id, orig_e: Box::new(e) })
         }
@@ -429,17 +429,13 @@ impl SwitchConnection {
     ///
     /// * `file_path` - Path to the file
     fn read_file_to_bytes(&self, file_path: &str) -> Vec<u8> {
-        let data = {
-            let mut file = fs::File::open(file_path).expect(&*format!("Unable to read: {}", file_path));
+        let mut file = fs::File::open(file_path).unwrap_or_else(|_| panic!("Unable to read: {}", file_path));
 
-            let metadata = fs::metadata(file_path).expect(&*format!("Unable to read metadata for {}.", file_path));
-            let mut file_buffer = vec![0; metadata.len() as usize];
-            file.read(&mut file_buffer).expect("buffer overflow");
+        let metadata = fs::metadata(file_path).unwrap_or_else(|_| panic!("Unable to read metadata for {}.", file_path));
+        let mut file_buffer = vec![0; metadata.len() as usize];
+        file.read(&mut file_buffer).expect("buffer overflow");
 
-            file_buffer
-        };
-
-        data
+        file_buffer
     }
 
     /// Load a P4 program onto the switch based on the information in the `config_file`
@@ -449,11 +445,11 @@ impl SwitchConnection {
         debug!("Set forwarding pipeline.");
 
         let file = fs::File::open(config_file)
-            .expect(&*format!("config file: {} not readable.", config_file));
+            .unwrap_or_else(|_| panic!("config file: {} not readable.", config_file));
         let config: core::Configuration = serde_json::from_reader(file)
             .expect("config file has invalid json format.");
 
-        let device = config.p4_devices.get(0).unwrap();
+        let device = config.p4_devices.first().unwrap();
 
         let mut forwarding_configs: Vec<ForwardingPipelineConfig> = vec![];
 
@@ -495,7 +491,7 @@ impl SwitchConnection {
         match req {
             Ok(_) => Ok(()),
             Err(e) => {
-                return Err(GRPCError { message: e.to_string(), details: format!("{:?}", e.details()) });
+                Err(GRPCError { message: e.to_string(), details: format!("{:?}", e.details()) })
             }
         }
     }
@@ -533,7 +529,7 @@ impl SwitchConnection {
             },
             Err(e) => {
                 warn!("Bind forwarding pipeline failed.");
-                return Err(GRPCError { message: e.to_string(), details: format!("{:?}", e.details()) });
+                Err(GRPCError { message: e.to_string(), details: format!("{:?}", e.details()) })
             }
         }
     }
@@ -709,7 +705,7 @@ impl SwitchConnection {
     pub async fn get_register_entries(&self, requests: Vec<register::Request>) -> Result<Register, RBFRTError> {
         debug!("Read register {}", format!("{:?}", requests));
 
-        let name = requests.get(0).as_ref().unwrap().get_name();
+        let name = requests.first().as_ref().unwrap().get_name();
 
         let mut req = vec![];
 
@@ -775,17 +771,17 @@ impl SwitchConnection {
 
         let bfrt_info = self.bfrt_info.as_ref().unwrap();
 
-        if request.len() == 0 {
+        if request.is_empty() {
             return Err(RequestEmpty {});
         }
 
-        match request.get(0).as_ref().unwrap().get_type() {
+        match request.first().as_ref().unwrap().get_type() {
             RequestType::Read => {
                 let mut entities = vec![];
 
                 for req in request {
                     let table = bfrt_info.table_get(req.get_table_name())?;
-                    let entity = table.build_read_request(&req)?;
+                    let entity = table.build_read_request(req)?;
                     entities.push(entity);
                 }
 
@@ -810,7 +806,7 @@ impl SwitchConnection {
 
                 for req in request {
                     let table = bfrt_info.table_get(req.get_table_name())?;
-                    let update = table.build_write_request(&req)?;
+                    let update = table.build_write_request(req)?;
                     updates.push(update);
                 }
 
@@ -829,14 +825,14 @@ impl SwitchConnection {
                     .write(req)
                     .await?;
 
-                return Ok(DispatchResult::WriteResult { response });
+                Ok(DispatchResult::WriteResult { response })
             }
             RequestType::Operation => {
                 let mut updates = vec![];
 
                 for req in request {
                     let table = bfrt_info.table_get(req.get_table_name())?;
-                    let update = table.build_operation_request(&req)?;
+                    let update = table.build_operation_request(req)?;
                     updates.push(update);
                 }
 
@@ -855,15 +851,14 @@ impl SwitchConnection {
                     .write(req)
                     .await?;
 
-                return Ok(DispatchResult::WriteResult { response });
+                Ok(DispatchResult::WriteResult { response })
             }
             RequestType::Delete => {
                 let mut updates = vec![];
 
                 for req in request {
                     let table = bfrt_info.table_get(req.get_table_name())?;
-                    let update = table.build_delete_request(
-                                                             req)?;
+                    let update = table.build_delete_request(req)?;
                     updates.push(update);
                 }
 

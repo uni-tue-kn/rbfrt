@@ -86,19 +86,13 @@ impl BFRTAction {
     pub fn get_action_data_by_name(&self, name: &str) -> Result<&ActionData, RBFRTError> {
         if let Some(data) = &self.data {
             for d in data {
-                if d.name == name.to_string() {
+                if d.name == *name {
                     return Ok(d);
                 }
             }
         }
 
         Err(UnknownActionDataName { name: name.to_string(), action_name: self.name.clone()})
-    }
-
-    pub fn get_action_data_width(&self, name: &str) -> Result<u32, RBFRTError> {
-        let action_data = self.get_action_data_by_name(name)?;
-
-        return Ok(action_data.r#type.as_ref().unwrap().get_width());
     }
 
     pub fn get_action_data_type(&self, name: &str) -> Result<&BFRTFieldType, RBFRTError> {

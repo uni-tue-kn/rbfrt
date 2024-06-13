@@ -207,10 +207,10 @@ impl PortManager {
                 _ => panic!("Wrong match value type for port.")
             }).unwrap_or_else(|_| panic!("Error"));
 
-            let port_parts = port_name.split("/").collect::<Vec<&str>>();
+            let port_parts = port_name.split('/').collect::<Vec<&str>>();
 
             if port_parts.len() == 2 {
-                let front_port = port_parts.get(0).unwrap().parse::<u32>().unwrap();
+                let front_port = port_parts.first().unwrap().parse::<u32>().unwrap();
                 let channel = port_parts.get(1).unwrap().parse::<u8>().unwrap();
 
                 self.mapping_name_to_dev.insert(port_name.to_owned(), port_number);
@@ -223,7 +223,7 @@ impl PortManager {
 
     pub fn dev_port(&self, port: u32, channel:  u8) -> Result<u32, RBFRTError> {
         if self.mapping_name_to_dev.contains_key(&format!("{}/{}", port, channel)) {
-            Ok(self.mapping_name_to_dev.get(&format!("{}/{}", port, channel)).unwrap().clone())
+            Ok(*self.mapping_name_to_dev.get(&format!("{}/{}", port, channel)).unwrap())
         }
         else {
             Err(PortNotFound { name: format!("{}/{}", port, channel)})
@@ -232,7 +232,7 @@ impl PortManager {
 
     pub fn frontpanel_port(&self, dev_port: u32) -> Result<(u32, u8), RBFRTError> {
         if self.mapping_dev_to_name.contains_key(&dev_port) {
-            Ok(self.mapping_dev_to_name.get(&dev_port).unwrap().clone())
+            Ok(*self.mapping_dev_to_name.get(&dev_port).unwrap())
         }
         else {
             Err(PortNotFound { name: format!("{}", dev_port)})
@@ -255,7 +255,7 @@ impl PortManager {
         Ok(())
     }
 
-    pub async fn add_ports(&self, switch: &SwitchConnection, requests: &Vec<Port>) -> Result<(), RBFRTError> {
+    pub async fn add_ports(&self, switch: &SwitchConnection, requests: &[Port]) -> Result<(), RBFRTError> {
         let all_requests: Result<Vec<table::Request>, RBFRTError> = requests
             .iter()
             .map(|request| {

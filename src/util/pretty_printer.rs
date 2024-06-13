@@ -40,7 +40,7 @@ impl PrettyPrinter {
     /// Set the infer_address_type_flag
     /// * `infer_address_type_flag` - The PrettyPrinter will try to infer MAC and IP addresses from column names
     pub fn infer_address_type_flag(self, infer_address_type_flag: bool) -> PrettyPrinter {
-        PrettyPrinter {infer_address_type_flag: infer_address_type_flag, ..self}
+        PrettyPrinter {infer_address_type_flag}
     }
 
     pub fn get_infer_address_type_flag(&self) -> bool {
@@ -93,27 +93,27 @@ impl PrettyPrinter {
     ///
     /// # Attributes
     /// * `entries` - All entries that will be in this table
-    fn create_header_row(&self, entries: &Vec<TableEntry>) -> BTreeSet<String> {
+    fn create_header_row(&self, entries: &[TableEntry]) -> BTreeSet<String> {
         let mut header_row: BTreeSet<String> = BTreeSet::new();
         header_row.insert("Action".to_string());
         header_row.insert("Action parameters".to_string());
 
         // Collect all possible key columns first before processing data
-        if entries.len() > 0 {
+        if !entries.is_empty() {
             let entry = &entries[0];
             let mut col_name: String;
             for key in &entry.match_key {
                 match key.1 {
-                    MatchValue::ExactValue { bytes } => {
+                    MatchValue::ExactValue { bytes: _} => {
                         col_name = format!("EXT:{}", key.0);
                     }
-                    MatchValue::LPM { bytes, prefix_length } => {
+                    MatchValue::LPM { bytes: _, prefix_length: _} => {
                         col_name = format!("LPM:{}", key.0);
                     }
-                    MatchValue::RangeValue { lower_bytes, higher_bytes } => {
+                    MatchValue::RangeValue { lower_bytes: _, higher_bytes: _} => {
                         col_name = format!("RNG:{}", key.0);
                     }
-                    MatchValue::Ternary { value, mask } => {
+                    MatchValue::Ternary { value: _, mask : _} => {
                         col_name = format!("TER:{}", key.0);
                     }
                 }
@@ -158,18 +158,18 @@ impl PrettyPrinter {
                             .filter(|entry| entry.0 == key)
                             .map(|entry| entry.1)
                             .collect();
-                        if values.len() > 0 {
+                        if !values.is_empty() {
                             let value = &values[0];
                             match value {
                                 MatchValue::ExactValue { bytes } => {
-                                    let bytes_str = self.convert_data_to_string(key, &bytes);
+                                    let bytes_str = self.convert_data_to_string(key, bytes);
                                     row_entry.push(bytes_str)
                                 }
                                 MatchValue::LPM {
                                     bytes,
                                     prefix_length,
                                 } => {
-                                    let bytes_str = self.convert_data_to_string(key, &bytes);
+                                    let bytes_str = self.convert_data_to_string(key, bytes);
                                     let lpm_str = format!("{bytes_str} / {prefix_length}");
                                     row_entry.push(lpm_str);
                                 }
@@ -177,14 +177,14 @@ impl PrettyPrinter {
                                     lower_bytes,
                                     higher_bytes,
                                 } => {
-                                    let lower_str = self.convert_data_to_string(key, &lower_bytes);
-                                    let upper_str = self.convert_data_to_string(key, &higher_bytes);
+                                    let lower_str = self.convert_data_to_string(key, lower_bytes);
+                                    let upper_str = self.convert_data_to_string(key, higher_bytes);
                                     let range_str = format!("[{lower_str}, {upper_str})");
                                     row_entry.push(range_str);
                                 }
                                 MatchValue::Ternary { value, mask } => {
-                                    let value_str = self.convert_data_to_string(key, &value);
-                                    let mask_str = self.convert_data_to_string(key, &mask);
+                                    let value_str = self.convert_data_to_string(key, value);
+                                    let mask_str = self.convert_data_to_string(key, mask);
                                     let ternary_str = format!("{value_str} &\n{mask_str}");
                                     row_entry.push(ternary_str);
                                 }
@@ -214,16 +214,14 @@ impl PrettyPrinter {
             action_data_row.push(action_data_str);
         }
 
-        let table_string;
-        if action_data_header_row.len() > 0 {
+        if !action_data_header_row.is_empty() {
             action_data_table.set_titles(Row::from(action_data_header_row));
             action_data_table.add_row(Row::from(action_data_row));
-            table_string = action_data_table.to_string();
-        } else {
-            table_string = "-".to_string();
+            action_data_table.to_string()
         }
-
-        table_string
+        else {
+            "-".to_string()
+        }
     }
 
     /// Prettyprint all given entries as tables.
@@ -250,14 +248,14 @@ impl PrettyPrinter {
             let table_name = entry.table_name.clone();
             grouped_tables
                 .entry(table_name)
-                .or_insert_with(Vec::new)
+                .or_default()
                 .push(entry);
         }
 
         for (table_name, table_entries) in &grouped_tables {
             let mut table = Table::new();
 
-            let header_row = self.create_header_row(&table_entries);
+            let header_row = self.create_header_row(table_entries);
             table.set_titles(Row::from(header_row.clone()));
 
             for entry in table_entries {

@@ -55,7 +55,7 @@ impl TableEntry {
     pub fn get_action_data(&self, name: &str) -> Result<&ActionData, RBFRTError> {
         for action in &self.action_data {
             if action.get_name() == name {
-                return Ok(&action);
+                return Ok(action);
             }
         }
 
