@@ -28,6 +28,7 @@ use crate::bfrt_proto::key_field::MatchType;
 use crate::bfrt_proto::table_entry::Value;
 use crate::error::RBFRTError;
 use crate::error::RBFRTError::{UnknownActionId, UnknownActionName, UnknownKeyId, UnknownKeyName, UnknownSingletonId, UnknownSingletonName, UnknownReadResult};
+use crate::protos::bfrt_proto::TargetDevice;
 use crate::table::{MatchValue, Request, TableEntry, ToBytes};
 
 #[derive(Deserialize, Debug, Clone)]
@@ -185,6 +186,7 @@ impl BFRTTableObject {
     pub fn build_read_request(
         &self,
         request: &Request,
+        target: &TargetDevice
     ) -> Result<Entity, RBFRTError> {
 
         let val: Option<Value> = self.build_table_key_data(request)?;
@@ -196,7 +198,13 @@ impl BFRTTableObject {
                 is_default_entry: false,
                 table_read_flag: None,
                 table_mod_inc_flag: None,
-                entry_tgt: None,
+                entry_tgt: if let Some(pipe) = request.get_pipe() {
+                    let mut t = target.clone();
+                    t.pipe_id = pipe;
+                    Some(t)
+                } else {
+                    None
+                },
                 table_flags: None,
                 value: val,
             })),
@@ -207,17 +215,24 @@ impl BFRTTableObject {
 
     pub fn build_write_request(
         &self,
-        request: &Request
+        request: &Request,
+        target: &TargetDevice
     ) -> Result<Update, RBFRTError> {
 
         let ent = Entity {
             entity: Some(entity::Entity::TableEntry(bfrt_proto::TableEntry {
                 table_id: self.id,
                 data: self.build_table_action_data(request)?,
-                is_default_entry: false,
+                is_default_entry: request.is_default(),
                 table_read_flag: None,
                 table_mod_inc_flag: None,
-                entry_tgt: None,
+                entry_tgt: if let Some(pipe) = request.get_pipe() {
+                    let mut t = target.clone();
+                    t.pipe_id = pipe;
+                    Some(t)
+                } else {
+                    None
+                },
                 table_flags: None,
                 value: self.build_table_key_data(request)?,
             })),
@@ -256,6 +271,7 @@ impl BFRTTableObject {
     pub fn build_delete_request(
         &self,
         request: &Request,
+        target: &TargetDevice
     ) -> Result<Update, RBFRTError> {
 
         let ent = Entity {
@@ -265,7 +281,13 @@ impl BFRTTableObject {
                 is_default_entry: false,
                 table_read_flag: None,
                 table_mod_inc_flag: None,
-                entry_tgt: None,
+                entry_tgt: if let Some(pipe) = request.get_pipe() {
+                    let mut t = target.clone();
+                    t.pipe_id = pipe;
+                    Some(t)
+                    } else {
+                    None
+                },
                 table_flags: None,
                 value: self.build_table_key_data(request)?,
                 })),
