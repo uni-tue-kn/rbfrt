@@ -37,6 +37,7 @@ pub trait ToBytes {
     fn to_bool(&self) -> bool { unimplemented!("Conversion not implemented.");}
     fn to_ipv4(&self) -> Result<Ipv4Addr, RBFRTError> { unimplemented!("Conversion not implemented.");}
     fn to_ipv6(&self) -> Result<Ipv6Addr, RBFRTError>{ unimplemented!("Conversion not implemented.");}
+    fn to_int_arr(&self) -> Vec<u32> { unimplemented!("Conversion not implemented");}
 }
 
 impl ToBytes for u8 {
@@ -128,6 +129,18 @@ impl ToBytes for Vec<u8> {
         Ok(Ipv4Addr::from(octets))
     }
 
+    fn to_int_arr(&self) -> Vec<u32> {
+        let mut ret = vec![];
+        for (i, v) in self.iter().enumerate().step_by(4) {
+            // TODO dont do unsafe ...
+            ret.push(unsafe {
+                u32::from_be_bytes([*v, *self.get_unchecked(i+1), *self.get_unchecked(i+2), *self.get_unchecked(i+3)])
+            });
+        }
+
+        ret
+    }
+
     /// Converts Vec<u8> of length 4 to Ipv4Addr. 
     /// Throws an error if vector length does not match.
     ///```
@@ -182,5 +195,11 @@ impl ToBytes for Ipv6Addr {
     ///```
     fn to_bytes(&self) -> Vec<u8> {
         self.octets().to_vec()
+    }
+}
+
+impl ToBytes for Vec<u32> {
+    fn to_bytes(&self) -> Vec<u8> {
+        self.iter().map(|val| val.to_be_bytes()).flatten().collect()
     }
 }

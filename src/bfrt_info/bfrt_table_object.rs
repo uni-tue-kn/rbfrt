@@ -352,6 +352,7 @@ impl BFRTTableObject {
                                     data_field::Value::StrVal(s) => s.encode_to_vec(),
                                     data_field::Value::BoolVal(b) => b.encode_to_vec(),
                                     data_field::Value::FloatVal(f) => f.encode_to_vec(),
+                                    data_field::Value::IntArrVal(i) => i.val.clone().to_bytes(),
                                     _ => unimplemented!("Not yet implemented. {:?}", f.value.as_ref().unwrap())
                                 },
                             ));
