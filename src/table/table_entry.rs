@@ -121,7 +121,9 @@ pub struct Request {
     action_data: Vec<ActionData>,
     action_data_repeated: Vec<ActionDataRepeated>,
     request_type: RequestType,
-    operation: TableOperation
+    operation: TableOperation,
+    is_default_entry: bool,
+    pipe: Option<u32>
 }
 
 impl Request {
@@ -133,7 +135,9 @@ impl Request {
             action_data: vec![],
             action_data_repeated: vec![],
             request_type: RequestType::Read,
-            operation: TableOperation::None
+            operation: TableOperation::None,
+            is_default_entry: false,
+            pipe: None
         }
     }
 
@@ -162,6 +166,24 @@ impl Request {
     pub fn action_data<T: ToBytes>(mut self, name: &str, data: T) -> Request {
         self.action_data.push(ActionData::new(name, data));
         self
+    }
+
+    pub fn default(mut self, is_default: bool) -> Request {
+        self.is_default_entry = is_default;
+        self
+    }
+
+    pub fn pipe(mut self, pipe: u32) -> Request {
+        self.pipe = Some(pipe);
+        self
+    }
+
+    pub fn get_pipe(&self) -> Option<u32> {
+        self.pipe
+    }
+
+    pub fn is_default(&self) -> bool {
+        self.is_default_entry
     }
 
     pub fn action_data_repeated<T: ToBytes>(mut self, name: &str, data: Vec<T>) -> Request {

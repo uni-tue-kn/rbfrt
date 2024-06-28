@@ -781,7 +781,7 @@ impl SwitchConnection {
 
                 for req in request {
                     let table = bfrt_info.table_get(req.get_table_name())?;
-                    let entity = table.build_read_request(req)?;
+                    let entity = table.build_read_request(req, &self.target)?;
                     entities.push(entity);
                 }
 
@@ -806,7 +806,7 @@ impl SwitchConnection {
 
                 for req in request {
                     let table = bfrt_info.table_get(req.get_table_name())?;
-                    let update = table.build_write_request(req)?;
+                    let update = table.build_write_request(req, &self.target)?;
                     updates.push(update);
                 }
 
@@ -858,7 +858,7 @@ impl SwitchConnection {
 
                 for req in request {
                     let table = bfrt_info.table_get(req.get_table_name())?;
-                    let update = table.build_delete_request(req)?;
+                    let update = table.build_delete_request(req, &self.target)?;
                     updates.push(update);
                 }
 

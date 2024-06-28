@@ -67,6 +67,9 @@ impl PrettyPrinter {
         else if data.len() <= 16 {
             address = data.to_u128().to_string();
         } 
+        else if data.len() % 4 == 0 {
+            address = format!("{:?}", data.to_int_arr());
+        }        
         else {
             address = format!("{:?}", data);
         }
