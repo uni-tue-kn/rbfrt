@@ -34,7 +34,7 @@ impl BFRTInfo {
     pub fn table_get(&self, name: &str) -> Result<&BFRTTableObject, RBFRTError> {
         for t in &self.tables {
             if t.name() == format!("pipe.{}", name) || t.name() == name {
-                return Ok(&t);
+                return Ok(t);
             }
         }
 
@@ -44,7 +44,7 @@ impl BFRTInfo {
     pub fn table_get_by_id(&self, id: u32) -> Result<&BFRTTableObject, RBFRTError> {
         for t in &self.tables {
             if t.id() == id {
-                return Ok(&t);
+                return Ok(t);
             }
         }
 
@@ -118,7 +118,7 @@ impl Convert for Vec<u8> {
 
         ret.append(&mut self);
 
-        return Ok(ret);
+        Ok(ret)
     }
 }
 

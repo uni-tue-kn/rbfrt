@@ -61,11 +61,11 @@ impl BFRTTableObject {
 
         let m = request.get_match_keys();
 
-        if m.len() != 0 {
+        if !m.is_empty() {
             let mut key_fields = vec![];
 
             for entry in m {
-                let key = self.get_key_by_name(&entry.0)?;
+                let key = self.get_key_by_name(entry.0)?;
                 let key_name = key.name();
                 let key_width = key.r#type().get_width();
 
@@ -95,9 +95,6 @@ impl BFRTTableObject {
     }
 
     fn build_table_action_data(&self, request: &Request) -> Result<Option<TableData>, RBFRTError> {
-        let mut data: Option<TableData> = None;
-
-
         let mut fields = vec![];
 
         let id = {
@@ -149,19 +146,19 @@ impl BFRTTableObject {
 
                 let value = match field_type.as_str() {
                     "bool" => {
-                        let bool_val = entry.get_data().into_iter().map(|v| v.to_bool()).collect();
+                        let bool_val = entry.get_data().iter().map(|v| v.to_bool()).collect();
                         let bool_val = data_field::BoolArray { val: bool_val };
 
                         data_field::Value::BoolArrVal(bool_val)
                     },
                     "uint32" | "uint16" | "uint8" => {
-                        let int_val = entry.get_data().into_iter().map(|v| v.to_u32()).collect();
+                        let int_val = entry.get_data().iter().map(|v| v.to_u32()).collect();
                         let int_val = data_field::IntArray { val: int_val };
 
                         data_field::Value::IntArrVal(int_val)
                     },
                     "bytes" => {
-                        let vals = entry.get_data().get(0).clone().unwrap().to_vec();
+                        let vals = entry.get_data().first().unwrap().to_vec();
                         data_field::Value::Stream(vals)
                     },
                     _ => unimplemented!("Not implemented.")
@@ -179,7 +176,7 @@ impl BFRTTableObject {
             }
         };
 
-        data = Some(TableData { action_id: id, fields });
+        let data = Some(TableData { action_id: id, fields });
 
 
         Ok(data)
@@ -291,26 +288,23 @@ impl BFRTTableObject {
                     match_key: {
                         let mut match_keys: HashMap<String, MatchValue> = HashMap::new();
 
-                        match t.value.as_ref() {
-                            Some(val) => {
-                                match val {
-                                    Value::Key(keys) => {
-                                        for k in &keys.fields {
-                                            let key = self.get_key_by_id(k.field_id)?;
-                                            match_keys.insert(key.name().to_owned(),
-                                                              match k.match_type.as_ref().unwrap() {
-                                                                  MatchType::Exact(e) => { MatchValue::ExactValue { bytes: e.value.clone() } }
-                                                                  MatchType::Range(r) => { MatchValue::RangeValue { lower_bytes: r.low.clone(), higher_bytes: r.high.clone() } }
-                                                                  MatchType::Lpm(l) => { MatchValue::LPM { bytes: l.value.clone(), prefix_length: l.prefix_len } }
-                                                                  MatchType::Ternary(t) => MatchValue::Ternary { value: t.value.clone(), mask: t.mask.clone() },
-                                                                  _ => { MatchValue::ExactValue { bytes: vec![] } }
-                                                              });
-                                        }
+                        if let Some(val) = t.value.as_ref() {
+                            match val {
+                                Value::Key(keys) => {
+                                    for k in &keys.fields {
+                                        let key = self.get_key_by_id(k.field_id)?;
+                                        match_keys.insert(key.name().to_owned(),
+                                                          match k.match_type.as_ref().unwrap() {
+                                                              MatchType::Exact(e) => { MatchValue::ExactValue { bytes: e.value.clone() } }
+                                                              MatchType::Range(r) => { MatchValue::RangeValue { lower_bytes: r.low.clone(), higher_bytes: r.high.clone() } }
+                                                              MatchType::Lpm(l) => { MatchValue::LPM { bytes: l.value.clone(), prefix_length: l.prefix_len } }
+                                                              MatchType::Ternary(t) => MatchValue::Ternary { value: t.value.clone(), mask: t.mask.clone() },
+                                                              _ => { MatchValue::ExactValue { bytes: vec![] } }
+                                                          });
                                     }
-                                    Value::HandleId(_) => {}
                                 }
+                                Value::HandleId(_) => {}
                             }
-                            None => {}
                         }
 
                         match_keys
@@ -355,7 +349,7 @@ impl BFRTTableObject {
     fn get_action_by_id(&self, action_id: u32) -> Result<&BFRTAction, RBFRTError> {
         for a in self.action_specs.as_ref().unwrap() {
             if a.id == action_id {
-                return Ok(&a);
+                return Ok(a);
             }
         }
 
@@ -430,7 +424,7 @@ impl BFRTTableObject {
 
     pub fn get_key_by_name(&self, name: &str) -> Result<&BFRTTableKeyObject, RBFRTError> {
         for k in &self.key {
-            if k.name() == name.to_owned() {
+            if k.name() == name {
                 return Ok(k);
             }
         }
