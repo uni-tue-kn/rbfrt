@@ -70,6 +70,18 @@ impl ToBytes for u32 {
     }
 }
 
+impl ToBytes for u64 {
+    fn to_bytes(&self) -> Vec<u8> {
+        u64::to_be_bytes(*self).to_vec()
+    }
+}
+
+impl ToBytes for u128 {
+    fn to_bytes(&self) -> Vec<u8> {
+        u128::to_be_bytes(*self).to_vec()
+    }
+}
+
 impl ToBytes for i32 {
     fn to_bytes(&self) -> Vec<u8> {
         i32::to_be_bytes(*self).to_vec()
