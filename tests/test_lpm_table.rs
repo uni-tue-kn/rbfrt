@@ -1,11 +1,11 @@
-use rbfrt::table::{ActionData, MatchValue, ToBytes};
+use rbfrt::table::{MatchValue, ToBytes};
 use rbfrt::{table, SwitchConnection};
 
 const CONFIG_FILE: &str = "example.conf";
 
 #[tokio::test]
 async fn test_write_entry() -> Result<(), Box<dyn std::error::Error>> {
-    let mut switch = SwitchConnection::new("localhost", 50052)
+    let switch = SwitchConnection::builder("localhost", 50052)
         .device_id(0)
         .client_id(1)
         .config(CONFIG_FILE)
@@ -31,7 +31,7 @@ async fn test_write_entry() -> Result<(), Box<dyn std::error::Error>> {
 
 #[tokio::test]
 async fn test_update_entry() -> Result<(), Box<dyn std::error::Error>> {
-    let mut switch = SwitchConnection::new("localhost", 50052)
+    let switch = SwitchConnection::builder("localhost", 50052)
         .device_id(0)
         .client_id(1)
         .config(CONFIG_FILE)
@@ -52,7 +52,7 @@ async fn test_update_entry() -> Result<(), Box<dyn std::error::Error>> {
     assert_eq!(entries.len(), 1);
 
     let val = entries
-        .get(0)
+        .first()
         .unwrap()
         .get_action_data("e_port")?
         .get_data()
@@ -70,7 +70,7 @@ async fn test_update_entry() -> Result<(), Box<dyn std::error::Error>> {
     // verify entry
     let entries = switch.get_table_entry(req).await?;
 
-    let val = entries.get(0).unwrap().get_action_name();
+    let val = entries.first().unwrap().get_action_name();
 
     assert_eq!(val, "ingress.drop");
 
@@ -79,7 +79,7 @@ async fn test_update_entry() -> Result<(), Box<dyn std::error::Error>> {
 
 #[tokio::test]
 async fn test_delete_entry() -> Result<(), Box<dyn std::error::Error>> {
-    let mut switch = SwitchConnection::new("localhost", 50052)
+    let switch = SwitchConnection::builder("localhost", 50052)
         .device_id(0)
         .client_id(1)
         .config(CONFIG_FILE)

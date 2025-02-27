@@ -102,6 +102,6 @@ impl BFRTAction {
     pub fn get_action_data_type(&self, name: &str) -> Result<&BFRTFieldType, RBFRTError> {
         let action_data = self.get_action_data_by_name(name)?;
 
-        return Ok(action_data.r#type.as_ref().unwrap());
+        Ok(action_data.r#type.as_ref().unwrap())
     }
 }

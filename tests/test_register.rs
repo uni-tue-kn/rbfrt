@@ -5,7 +5,7 @@ const CONFIG_FILE: &str = "traffic_gen.conf";
 
 #[tokio::test]
 async fn test_write_entry() -> Result<(), Box<dyn std::error::Error>> {
-    let mut switch = SwitchConnection::new("localhost", 50052)
+    let switch = SwitchConnection::builder("localhost", 50052)
         .device_id(0)
         .client_id(1)
         .config(CONFIG_FILE)
@@ -29,7 +29,7 @@ async fn test_write_entry() -> Result<(), Box<dyn std::error::Error>> {
         reg_entry
             .get("ingress.p4tg.rx_seq.f1")
             .unwrap()
-            .get(0)
+            .first()
             .unwrap()
             .to_u32(),
         20

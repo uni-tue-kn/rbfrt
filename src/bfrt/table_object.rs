@@ -155,7 +155,7 @@ impl BFRTTableObject {
                 };
 
                 fields.push(DataField {
-                    field_id: field_id,
+                    field_id,
                     value: Some(value),
                 });
             }
@@ -231,6 +231,7 @@ impl BFRTTableObject {
         Ok(data)
     }
 
+    #[allow(deprecated)]
     pub fn build_read_request(
         &self,
         request: &Request,
@@ -260,6 +261,7 @@ impl BFRTTableObject {
         Ok(ent)
     }
 
+    #[allow(deprecated)]
     pub fn build_write_request(
         &self,
         request: &Request,
@@ -313,6 +315,7 @@ impl BFRTTableObject {
         Ok(update)
     }
 
+    #[allow(deprecated)]
     pub fn build_delete_request(
         &self,
         request: &Request,
@@ -354,7 +357,7 @@ impl BFRTTableObject {
             entity::Entity::TableEntry(t) => {
                 let data = t.data.as_ref().unwrap();
 
-                return Ok(TableEntry {
+                Ok(TableEntry {
                     table_id: t.table_id,
                     table_name: table_name.to_owned(),
                     match_key: {
@@ -427,7 +430,7 @@ impl BFRTTableObject {
 
                         action_data
                     },
-                });
+                })
             }
             _ => Err(UnknownReadResult {}),
         }
@@ -488,9 +491,7 @@ impl BFRTTableObject {
                 let action_data = action.get_action_data_by_id(param_field_id);
 
                 match action_data {
-                    Ok(data) => {
-                        return Ok(data.name());
-                    }
+                    Ok(data) => Ok(data.name()),
                     Err(e) => match self.get_singleton_by_id(param_field_id) {
                         Ok(s) => Ok(s.name()),
                         Err(_) => Err(e)?,

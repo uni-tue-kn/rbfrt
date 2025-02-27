@@ -25,7 +25,7 @@
 //! use rbfrt::{SwitchConnection, table};
 //! use rbfrt::table::{MatchValue};
 //! async fn example() -> Result<(), Box<dyn std::error::Error>> {
-//!     let mut switch = SwitchConnection::new("localhost", 50052)
+//!     let mut switch = SwitchConnection::builder("localhost", 50052)
 //!         .device_id(0)
 //!         .client_id(1)
 //!         .p4_name("my_p4_program")
@@ -102,7 +102,6 @@ use tokio_stream::wrappers::ReceiverStream;
 
 use crate::protos::bfrt_proto::entity::Entity;
 use crate::protos::bfrt_proto::{ReadRequest, WriteRequest};
-use crossbeam_channel;
 
 /// Size of the internal digest queue
 /// Up to 10k elements with back pressure
@@ -254,7 +253,7 @@ impl SwitchConnection {
     ///
     /// * `ip` - IP of device
     /// * `port` - GRPC port
-    pub fn new(ip: &str, port: u16) -> SwitchConnectionBuilder {
+    pub fn builder(ip: &str, port: u16) -> SwitchConnectionBuilder {
         SwitchConnectionBuilder {
             ip: ip.to_owned(),
             port,
@@ -267,6 +266,7 @@ impl SwitchConnection {
 
     /// Opens a notification channel.
     /// This is needed to bind to the device and to get notifications from the switch.
+    #[allow(deprecated)]
     pub async fn subscribe(
         &mut self,
         request_rx: tokio::sync::mpsc::Receiver<StreamMessageRequest>,
@@ -461,7 +461,7 @@ impl SwitchConnection {
         let metadata = fs::metadata(file_path)
             .unwrap_or_else(|_| panic!("Unable to read metadata for {}.", file_path));
         let mut file_buffer = vec![0; metadata.len() as usize];
-        file.read(&mut file_buffer).expect("buffer overflow");
+        file.read_exact(&mut file_buffer).expect("buffer overflow");
 
         file_buffer
     }

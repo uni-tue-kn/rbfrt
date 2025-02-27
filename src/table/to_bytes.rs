@@ -223,6 +223,6 @@ impl ToBytes for Ipv6Addr {
 
 impl ToBytes for Vec<u32> {
     fn to_bytes(&self) -> Vec<u8> {
-        self.iter().map(|val| val.to_be_bytes()).flatten().collect()
+        self.iter().flat_map(|val| val.to_be_bytes()).collect()
     }
 }

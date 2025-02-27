@@ -28,12 +28,18 @@ pub struct PrettyPrinter {
     infer_address_type_flag: bool,
 }
 
+impl Default for PrettyPrinter {
+    fn default() -> Self {
+        Self {
+            infer_address_type_flag: true,
+        }
+    }
+}
+
 /// PrettyPrinter to display MATs and their entries.
 impl PrettyPrinter {
     pub fn new() -> PrettyPrinter {
-        PrettyPrinter {
-            infer_address_type_flag: true,
-        }
+        Default::default()
     }
 
     /// Set the infer_address_type_flag
@@ -71,18 +77,16 @@ impl PrettyPrinter {
             address = format!("{:?}", data);
         }
 
-        if self.get_infer_address_type_flag() {
-            if key.contains("addr") || key.contains("address") {
-                if data.len() == 6 {
-                    // possibly a mac address
-                    address = format!(
-                        "{:x}:{:x}:{:x}:{:x}:{:x}:{:x}",
-                        data[0], data[1], data[2], data[3], data[4], data[5]
-                    );
-                } else if data.len() == 4 {
-                    // possible an IPv4 adress
-                    address = format!("{}.{}.{}.{}", data[0], data[1], data[2], data[3]);
-                }
+        if self.get_infer_address_type_flag() && (key.contains("addr") || key.contains("address")) {
+            if data.len() == 6 {
+                // possibly a mac address
+                address = format!(
+                    "{:x}:{:x}:{:x}:{:x}:{:x}:{:x}",
+                    data[0], data[1], data[2], data[3], data[4], data[5]
+                );
+            } else if data.len() == 4 {
+                // possible an IPv4 adress
+                address = format!("{}.{}.{}.{}", data[0], data[1], data[2], data[3]);
             }
         }
 

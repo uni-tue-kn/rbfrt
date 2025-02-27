@@ -19,6 +19,7 @@
 
 use serde::Deserialize;
 #[derive(Deserialize, Debug, Clone)]
+#[allow(clippy::upper_case_acronyms)]
 pub enum TableMatchTypes {
     LPM,
     Exact,

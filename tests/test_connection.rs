@@ -4,7 +4,7 @@ const CONFIG_FILE: &str = "example.conf";
 
 #[tokio::test]
 async fn test_connection() {
-    let switch = SwitchConnection::new("localhost", 50052)
+    let switch = SwitchConnection::builder("localhost", 50052)
         .device_id(0)
         .client_id(1)
         .config(CONFIG_FILE)
@@ -16,7 +16,7 @@ async fn test_connection() {
 
 #[tokio::test]
 async fn test_connection_failure() {
-    let switch = SwitchConnection::new("localhost", 50054)
+    let switch = SwitchConnection::builder("localhost", 50054)
         .device_id(0)
         .client_id(1)
         .config(CONFIG_FILE)
