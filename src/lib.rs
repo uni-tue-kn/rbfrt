@@ -63,14 +63,14 @@ use std::io::Read;
 mod protos;
 use protos::bfrt_proto;
 
-mod bfrt_info;
+mod bfrt;
 mod core;
 pub mod error;
 pub mod register;
 pub mod table;
 pub mod util;
 
-use bfrt_info::BFRTInfo;
+use bfrt::BFRTInfo;
 use bfrt_proto::TargetDevice;
 use tonic::{Response, Streaming};
 

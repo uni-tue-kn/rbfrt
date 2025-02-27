@@ -17,23 +17,34 @@
  * Steffen Lindner (steffen.lindner@uni-tuebingen.de)
  */
 
-use crate::bfrt_info::{BFRTFieldType, TableMatchTypes};
+use crate::bfrt::BFRTFieldType;
 use serde::Deserialize;
 
 #[derive(Deserialize, Debug, Clone)]
-pub struct BFRTTableKeyObject {
-    id: u32,
-    name: String,
-    #[allow(dead_code)]
-    repeated: Option<bool>,
+pub struct BFRTData {
     #[allow(dead_code)]
     mandatory: bool,
     #[allow(dead_code)]
-    match_type: TableMatchTypes,
-    r#type: BFRTFieldType,
+    read_only: bool,
+    singleton: BFRTSingleton,
 }
 
-impl BFRTTableKeyObject {
+impl BFRTData {
+    pub fn singleton(&self) -> &BFRTSingleton {
+        &self.singleton
+    }
+}
+
+#[derive(Deserialize, Debug, Clone)]
+pub struct BFRTSingleton {
+    id: u32,
+    name: String,
+    r#type: Option<BFRTFieldType>,
+    #[allow(dead_code)]
+    repeated: Option<bool>,
+}
+
+impl BFRTSingleton {
     pub fn id(&self) -> u32 {
         self.id
     }
@@ -42,7 +53,7 @@ impl BFRTTableKeyObject {
         &self.name
     }
 
-    pub fn r#type(&self) -> &BFRTFieldType {
+    pub fn get_type(&self) -> &Option<BFRTFieldType> {
         &self.r#type
     }
 }

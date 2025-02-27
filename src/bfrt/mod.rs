@@ -16,28 +16,28 @@
 /*
  * Steffen Lindner (steffen.lindner@uni-tuebingen.de)
  */
-mod bfrt_info;
-pub use bfrt_info::BFRTInfo;
-pub(crate) use bfrt_info::Convert;
+mod info;
+pub use info::BFRTInfo;
+pub(crate) use info::Convert;
 
-mod bfrt_table_object;
-pub use bfrt_table_object::BFRTTableObject;
+mod table_object;
+pub use table_object::BFRTTableObject;
 
-mod bfrt_action;
-mod bfrt_table_key_object;
+mod action;
+mod table_key_object;
 mod types;
-pub use bfrt_table_key_object::BFRTTableKeyObject;
+pub use table_key_object::BFRTTableKeyObject;
 
-mod bfrt_data;
+mod data;
 mod learn_filter;
 
 pub use learn_filter::LearnFilterObject;
 
-pub use bfrt_data::BFRTData;
-pub use bfrt_data::BFRTSingleton;
+pub use data::BFRTData;
+pub use data::BFRTSingleton;
 
 pub use types::BFRTFieldType;
 pub use types::TableMatchTypes;
 pub use types::TableType;
 
-pub use bfrt_action::BFRTAction;
+pub use action::BFRTAction;

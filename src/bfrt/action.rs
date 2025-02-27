@@ -17,7 +17,7 @@
  * Steffen Lindner (steffen.lindner@uni-tuebingen.de)
  */
 
-use crate::bfrt_info::BFRTFieldType;
+use crate::bfrt::BFRTFieldType;
 use crate::error::RBFRTError;
 use crate::error::RBFRTError::{UnknownActionDataId, UnknownActionDataName};
 use serde::Deserialize;

@@ -17,7 +17,7 @@
  * Steffen Lindner (steffen.lindner@uni-tuebingen.de)
  */
 
-use crate::bfrt_info::Convert;
+use crate::bfrt::Convert;
 use crate::error::RBFRTError;
 use std::array::TryFromSliceError;
 use std::net::{Ipv4Addr, Ipv6Addr};

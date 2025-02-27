@@ -19,7 +19,7 @@
 
 use serde::Deserialize;
 
-use crate::bfrt_info::{BFRTTableObject, LearnFilterObject};
+use crate::bfrt::{BFRTTableObject, LearnFilterObject};
 use crate::error::RBFRTError;
 use crate::error::RBFRTError::{ConvertError, UnknownLearnFilter, UnknownTable, UnknownTableId};
 

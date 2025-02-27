@@ -17,8 +17,8 @@
  * Steffen Lindner (steffen.lindner@uni-tuebingen.de)
  */
 
-use crate::bfrt_info::bfrt_info::Convert;
-use crate::bfrt_info::{BFRTAction, BFRTData, BFRTSingleton, BFRTTableKeyObject, TableType};
+use crate::bfrt::info::Convert;
+use crate::bfrt::{BFRTAction, BFRTData, BFRTSingleton, BFRTTableKeyObject, TableType};
 use crate::bfrt_proto;
 use crate::bfrt_proto::key_field::MatchType;
 use crate::bfrt_proto::table_entry::Value;
