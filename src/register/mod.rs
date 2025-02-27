@@ -18,7 +18,7 @@
  */
 mod register;
 
-pub use register::Request;
-pub use register::Register;
 pub use register::IndexType;
+pub use register::Register;
 pub use register::RegisterEntry;
+pub use register::Request;

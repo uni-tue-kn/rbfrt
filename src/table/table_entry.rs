@@ -17,10 +17,10 @@
  * Steffen Lindner (steffen.lindner@uni-tuebingen.de)
  */
 
-use std::collections::HashMap;
-use crate::table::{ActionData, MatchValue, ToBytes};
 use crate::error::RBFRTError;
 use crate::table::action_data::ActionDataRepeated;
+use crate::table::{ActionData, MatchValue, ToBytes};
+use std::collections::HashMap;
 
 /// Represents a table entry internally
 #[derive(Debug)]
@@ -35,16 +35,18 @@ pub struct TableEntry {
     /// name of the associated action
     pub action: String,
     /// action data of the action, empty if not parameters are provided
-    pub action_data: Vec<ActionData>
+    pub action_data: Vec<ActionData>,
 }
 
 impl TableEntry {
     pub fn get_key(&self, name: &str) -> Result<&MatchValue, RBFRTError> {
         if self.match_key.contains_key(name) {
             Ok(self.match_key.get(name).unwrap())
-        }
-        else {
-            Err(RBFRTError::UnknownKeyName { name: name.to_string(), table_name: self.table_name.clone() })
+        } else {
+            Err(RBFRTError::UnknownKeyName {
+                name: name.to_string(),
+                table_name: self.table_name.clone(),
+            })
         }
     }
 
@@ -59,8 +61,9 @@ impl TableEntry {
             }
         }
 
-        Err(RBFRTError::UnknownActionName { name: name.to_string()})
-
+        Err(RBFRTError::UnknownActionName {
+            name: name.to_string(),
+        })
     }
 
     pub fn has_action_data(&self, name: &str) -> bool {
@@ -88,14 +91,14 @@ pub enum RequestType {
     Write,
     Update,
     Operation,
-    Delete
+    Delete,
 }
 
 #[derive(Debug, Clone)]
 pub enum TableOperation {
     None,
     SyncCounters,
-    SyncRegister
+    SyncRegister,
 }
 
 impl TableOperation {
@@ -103,7 +106,7 @@ impl TableOperation {
         match self {
             TableOperation::None => String::from(""),
             TableOperation::SyncCounters => String::from("SyncCounters"),
-            TableOperation::SyncRegister => String::from("SyncRegisters")
+            TableOperation::SyncRegister => String::from("SyncRegisters"),
         }
     }
 }
@@ -123,7 +126,7 @@ pub struct Request {
     request_type: RequestType,
     operation: TableOperation,
     is_default_entry: bool,
-    pipe: Option<u32>
+    pipe: Option<u32>,
 }
 
 impl Request {
@@ -137,7 +140,7 @@ impl Request {
             request_type: RequestType::Read,
             operation: TableOperation::None,
             is_default_entry: false,
-            pipe: None
+            pipe: None,
         }
     }
 
@@ -152,7 +155,6 @@ impl Request {
         self.match_keys.insert(name.to_owned(), match_value);
         self
     }
-
 
     pub fn action(mut self, action: &str) -> Request {
         self.action = Some(action.to_owned());
@@ -187,7 +189,8 @@ impl Request {
     }
 
     pub fn action_data_repeated<T: ToBytes>(mut self, name: &str, data: Vec<T>) -> Request {
-        self.action_data_repeated.push(ActionDataRepeated::new(name, data));
+        self.action_data_repeated
+            .push(ActionDataRepeated::new(name, data));
         self
     }
 
@@ -213,7 +216,9 @@ impl Request {
         &self.table_name
     }
 
-    pub fn get_action_data_repeated(&self) -> &Vec<ActionDataRepeated> { &self.action_data_repeated }
+    pub fn get_action_data_repeated(&self) -> &Vec<ActionDataRepeated> {
+        &self.action_data_repeated
+    }
     /// returns match keys
     pub fn get_match_keys(&self) -> &HashMap<String, MatchValue> {
         &self.match_keys

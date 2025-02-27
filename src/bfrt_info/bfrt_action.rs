@@ -17,10 +17,10 @@
  * Steffen Lindner (steffen.lindner@uni-tuebingen.de)
  */
 
-use serde::Deserialize;
 use crate::bfrt_info::BFRTFieldType;
 use crate::error::RBFRTError;
 use crate::error::RBFRTError::{UnknownActionDataId, UnknownActionDataName};
+use serde::Deserialize;
 
 #[derive(Deserialize, Debug, Clone)]
 enum ActionScope {
@@ -59,8 +59,6 @@ impl ActionData {
     }
 }
 
-
-
 #[derive(Deserialize, Debug, Clone)]
 pub struct BFRTAction {
     pub(crate) id: u32,
@@ -80,7 +78,10 @@ impl BFRTAction {
             }
         }
 
-        Err(UnknownActionDataId { id, action_name: self.name.clone() })
+        Err(UnknownActionDataId {
+            id,
+            action_name: self.name.clone(),
+        })
     }
 
     pub fn get_action_data_by_name(&self, name: &str) -> Result<&ActionData, RBFRTError> {
@@ -92,12 +93,15 @@ impl BFRTAction {
             }
         }
 
-        Err(UnknownActionDataName { name: name.to_string(), action_name: self.name.clone()})
+        Err(UnknownActionDataName {
+            name: name.to_string(),
+            action_name: self.name.clone(),
+        })
     }
 
     pub fn get_action_data_type(&self, name: &str) -> Result<&BFRTFieldType, RBFRTError> {
         let action_data = self.get_action_data_by_name(name)?;
 
-        return Ok(action_data.r#type.as_ref().unwrap())
+        return Ok(action_data.r#type.as_ref().unwrap());
     }
 }

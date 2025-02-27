@@ -17,13 +17,13 @@
  * Steffen Lindner (steffen.lindner@uni-tuebingen.de)
  */
 
-use serde::{Deserialize};
+use serde::Deserialize;
 #[derive(Deserialize, Debug, Clone)]
 pub enum TableMatchTypes {
     LPM,
     Exact,
     Range,
-    Ternary
+    Ternary,
 }
 
 #[derive(Deserialize, Debug, Clone)]
@@ -42,7 +42,7 @@ impl BFRTFieldType {
             "bytes" => self.width.unwrap(),
             "bool" => 1,
             "string" => 32, // strings are handled seperately
-            _ => panic!("Unknown width type: {}", self.r#type.as_str())
+            _ => panic!("Unknown width type: {}", self.r#type.as_str()),
         }
     }
 }
@@ -70,5 +70,5 @@ pub enum TableType {
     PktgenAppCfg,
     PktgenPktBufferCfg,
     #[serde(other)]
-    Unknown
+    Unknown,
 }

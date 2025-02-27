@@ -17,8 +17,8 @@
  * Steffen Lindner (steffen.lindner@uni-tuebingen.de)
  */
 
-use serde::Deserialize;
 use crate::bfrt_info::BFRTFieldType;
+use serde::Deserialize;
 
 #[derive(Deserialize, Debug, Clone)]
 pub struct BFRTData {
@@ -41,9 +41,8 @@ pub struct BFRTSingleton {
     name: String,
     r#type: Option<BFRTFieldType>,
     #[allow(dead_code)]
-    repeated: Option<bool>
+    repeated: Option<bool>,
 }
-
 
 impl BFRTSingleton {
     pub fn id(&self) -> u32 {
@@ -53,9 +52,8 @@ impl BFRTSingleton {
     pub fn name(&self) -> &str {
         &self.name
     }
-    
+
     pub fn get_type(&self) -> &Option<BFRTFieldType> {
         &self.r#type
     }
-
 }

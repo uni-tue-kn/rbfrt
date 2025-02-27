@@ -25,7 +25,7 @@ pub struct ActionData {
     /// name of the action parameter
     key: String,
     /// data of the action parameter
-    data: Vec<u8>
+    data: Vec<u8>,
 }
 
 #[derive(Debug, Clone)]
@@ -33,7 +33,7 @@ pub struct ActionDataRepeated {
     /// name of the action parameter
     key: String,
     /// data of the action parameter
-    data: Vec<Vec<u8>>
+    data: Vec<Vec<u8>>,
 }
 
 impl ActionData {
@@ -61,7 +61,7 @@ impl ActionDataRepeated {
     pub fn new<T: ToBytes>(key: &str, data: Vec<T>) -> Self {
         ActionDataRepeated {
             key: key.to_owned(),
-            data: data.into_iter().map(|d| d.to_bytes()).collect()
+            data: data.into_iter().map(|d| d.to_bytes()).collect(),
         }
     }
 

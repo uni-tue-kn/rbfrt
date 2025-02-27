@@ -30,7 +30,6 @@ pub struct PrettyPrinter {
 
 /// PrettyPrinter to display MATs and their entries.
 impl PrettyPrinter {
-
     pub fn new() -> PrettyPrinter {
         PrettyPrinter {
             infer_address_type_flag: true,
@@ -40,7 +39,9 @@ impl PrettyPrinter {
     /// Set the infer_address_type_flag
     /// * `infer_address_type_flag` - The PrettyPrinter will try to infer MAC and IP addresses from column names
     pub fn infer_address_type_flag(self, infer_address_type_flag: bool) -> PrettyPrinter {
-        PrettyPrinter {infer_address_type_flag}
+        PrettyPrinter {
+            infer_address_type_flag,
+        }
     }
 
     pub fn get_infer_address_type_flag(&self) -> bool {
@@ -60,17 +61,13 @@ impl PrettyPrinter {
 
         if data.len() <= 4 {
             address = ToString::to_string(&data.to_u32());
-        }
-        else if data.len() <= 8 {
+        } else if data.len() <= 8 {
             address = data.to_u64().to_string();
-        }
-        else if data.len() <= 16 {
+        } else if data.len() <= 16 {
             address = data.to_u128().to_string();
-        } 
-        else if data.len() % 4 == 0 {
+        } else if data.len() % 4 == 0 {
             address = format!("{:?}", data.to_int_arr());
-        }        
-        else {
+        } else {
             address = format!("{:?}", data);
         }
 
@@ -107,27 +104,32 @@ impl PrettyPrinter {
             let mut col_name: String;
             for key in &entry.match_key {
                 match key.1 {
-                    MatchValue::ExactValue { bytes: _} => {
+                    MatchValue::ExactValue { bytes: _ } => {
                         col_name = format!("EXT:{}", key.0);
                     }
-                    MatchValue::LPM { bytes: _, prefix_length: _} => {
+                    MatchValue::LPM {
+                        bytes: _,
+                        prefix_length: _,
+                    } => {
                         col_name = format!("LPM:{}", key.0);
                     }
-                    MatchValue::RangeValue { lower_bytes: _, higher_bytes: _} => {
+                    MatchValue::RangeValue {
+                        lower_bytes: _,
+                        higher_bytes: _,
+                    } => {
                         col_name = format!("RNG:{}", key.0);
                     }
-                    MatchValue::Ternary { value: _, mask : _} => {
+                    MatchValue::Ternary { value: _, mask: _ } => {
                         col_name = format!("TER:{}", key.0);
                     }
                 }
-                
+
                 header_row.insert(col_name);
             }
         }
 
         header_row
     }
-
 
     /// Creates a data row for a table. Requires the header row to be build first.
     ///
@@ -145,12 +147,10 @@ impl PrettyPrinter {
                 // Write action name into the col
                 let action_name = &entry.action;
                 row_entry.push(action_name.clone());
-            }
-            else if *col == "Action parameters" {
+            } else if *col == "Action parameters" {
                 let action_data_table = self.create_action_sub_table(entry);
                 row_entry.push(action_data_table);
-            }
-            else {
+            } else {
                 // Collect data for keys in MAT
                 let key_name = col.get(4..);
                 match key_name {
@@ -221,8 +221,7 @@ impl PrettyPrinter {
             action_data_table.set_titles(Row::from(action_data_header_row));
             action_data_table.add_row(Row::from(action_data_row));
             action_data_table.to_string()
-        }
-        else {
+        } else {
             "-".to_string()
         }
     }
@@ -243,16 +242,12 @@ impl PrettyPrinter {
     /// tp.print_table(res)?;
     /// ```
     pub fn print_table(&self, entries: Vec<TableEntry>) -> Result<(), RBFRTError> {
-
         // entries might span different tables -> group them by table
         let mut grouped_tables: HashMap<String, Vec<TableEntry>> = HashMap::new();
 
         for entry in entries {
             let table_name = entry.table_name.clone();
-            grouped_tables
-                .entry(table_name)
-                .or_default()
-                .push(entry);
+            grouped_tables.entry(table_name).or_default().push(entry);
         }
 
         for (table_name, table_entries) in &grouped_tables {

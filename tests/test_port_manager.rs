@@ -1,12 +1,11 @@
-use rbfrt::SwitchConnection;
-use rbfrt::util::port_manager::{FEC, Port, Speed};
+use rbfrt::util::port_manager::{Port, Speed, FEC};
 use rbfrt::util::PortManager;
+use rbfrt::SwitchConnection;
 
 const CONFIG_FILE: &str = "example.conf";
 
 #[tokio::test]
-async fn test_port_manager_init() -> Result<(), Box<dyn std::error::Error>>{
-
+async fn test_port_manager_init() -> Result<(), Box<dyn std::error::Error>> {
     let mut switch = SwitchConnection::new("localhost", 50052)
         .device_id(0)
         .client_id(1)
@@ -20,8 +19,7 @@ async fn test_port_manager_init() -> Result<(), Box<dyn std::error::Error>>{
 }
 
 #[tokio::test]
-async fn test_port_add_100g() -> Result<(), Box<dyn std::error::Error>>{
-
+async fn test_port_add_100g() -> Result<(), Box<dyn std::error::Error>> {
     let mut switch = SwitchConnection::new("localhost", 50052)
         .device_id(0)
         .client_id(1)
@@ -54,4 +52,3 @@ async fn test_port_add_100g() -> Result<(), Box<dyn std::error::Error>>{
 
     Ok(())
 }
-

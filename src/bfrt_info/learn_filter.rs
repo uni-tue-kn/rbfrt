@@ -17,15 +17,15 @@
  * Steffen Lindner (steffen.lindner@uni-tuebingen.de)
  */
 
-use serde::Deserialize;
 use crate::error::RBFRTError;
 use crate::error::RBFRTError::UnknownLearnFilterField;
+use serde::Deserialize;
 
 #[derive(Deserialize, Debug, Clone)]
 pub struct LearnFilterObject {
     pub name: String,
     pub id: u32,
-    pub fields: Vec<LearnFilterField>
+    pub fields: Vec<LearnFilterField>,
 }
 
 #[derive(Deserialize, Debug, Clone)]
@@ -42,8 +42,6 @@ impl LearnFilterObject {
             }
         }
 
-        Err(UnknownLearnFilterField {field_id: id})
-
+        Err(UnknownLearnFilterField { field_id: id })
     }
 }
-

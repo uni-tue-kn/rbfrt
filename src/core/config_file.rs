@@ -20,7 +20,7 @@
 use serde::Deserialize;
 #[derive(Deserialize, Debug)]
 pub(crate) struct Configuration {
-    pub(crate) p4_devices: Vec<DeviceConfig>
+    pub(crate) p4_devices: Vec<DeviceConfig>,
 }
 
 #[derive(Deserialize, Debug)]
@@ -28,7 +28,7 @@ pub(crate) struct DeviceConfig {
     #[serde(alias = "device-id")]
     #[allow(dead_code)]
     pub(crate) device_id: u32,
-    pub(crate) p4_programs: Vec<P4Program>
+    pub(crate) p4_programs: Vec<P4Program>,
 }
 
 #[derive(Deserialize, Debug)]
@@ -37,7 +37,7 @@ pub(crate) struct P4Program {
     pub(crate) program_name: String,
     #[serde(alias = "bfrt-config")]
     pub(crate) bfrt_config: String,
-    pub(crate) p4_pipelines: Vec<P4Pipeline>
+    pub(crate) p4_pipelines: Vec<P4Pipeline>,
 }
 
 #[derive(Deserialize, Debug)]

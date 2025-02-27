@@ -17,11 +17,11 @@
  * Steffen Lindner (steffen.lindner@uni-tuebingen.de)
  */
 
-use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct Digest {
     pub name: String,
-    pub data: HashMap<String, Vec<u8>>
+    pub data: HashMap<String, Vec<u8>>,
 }

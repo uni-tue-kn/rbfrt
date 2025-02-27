@@ -17,16 +17,16 @@
  * Steffen Lindner (steffen.lindner@uni-tuebingen.de)
  */
 
-use std::collections::{HashMap};
-use crate::{SwitchConnection, table};
 use crate::error::RBFRTError;
 use crate::error::RBFRTError::PortNotFound;
 use crate::table::{MatchValue, ToBytes};
+use crate::{table, SwitchConnection};
+use std::collections::HashMap;
 
+use serde::{Deserialize, Serialize};
+use std::str::FromStr;
 use std::{fmt, str};
 use strum_macros::EnumString;
-use std::str::FromStr;
-use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, EnumString, PartialEq, Deserialize, Serialize)]
 #[allow(non_camel_case_types)]
@@ -38,7 +38,7 @@ pub enum Speed {
     BF_SPEED_40G,
     BF_SPEED_50G,
     BF_SPEED_100G,
-    BF_SPEED_400G
+    BF_SPEED_400G,
 }
 
 #[derive(Debug, Clone, EnumString, PartialEq, Deserialize, Serialize)]
@@ -62,7 +62,7 @@ pub enum FEC {
 pub enum Loopback {
     BF_LPBK_NONE,
     BF_LPBK_MAC_NEAR,
-    BF_LPBK_MAC_FAR
+    BF_LPBK_MAC_FAR,
 }
 
 impl fmt::Display for Speed {
@@ -101,7 +101,7 @@ pub struct Port {
     fec: FEC,
     loopback: Loopback,
     enable: bool,
-    status: bool
+    status: bool,
 }
 
 impl Port {
@@ -115,32 +115,38 @@ impl Port {
             fec: FEC::BF_FEC_TYP_NONE,
             loopback: Loopback::BF_LPBK_NONE,
             enable: true,
-            status: false
+            status: false,
         }
     }
 
     pub fn speed(self, speed: Speed) -> Port {
-        Port {speed, ..self}
+        Port { speed, ..self }
     }
 
     pub fn loopback(self, loopback: Loopback) -> Port {
-        Port {loopback, ..self}
+        Port { loopback, ..self }
     }
 
     pub fn enable(self) -> Port {
-        Port {enable: true, ..self}
+        Port {
+            enable: true,
+            ..self
+        }
     }
 
     pub fn disable(self) -> Port {
-        Port {enable: false, ..self}
+        Port {
+            enable: false,
+            ..self
+        }
     }
 
     pub fn auto_negotiation(self, auto_neg: AutoNegotiation) -> Port {
-        Port {auto_neg, ..self}
+        Port { auto_neg, ..self }
     }
 
     pub fn fec(self, fec: FEC) -> Port {
-        Port {fec, ..self}
+        Port { fec, ..self }
     }
 
     pub fn get_speed(&self) -> &Speed {
@@ -174,12 +180,15 @@ impl Port {
 }
 pub struct PortManager {
     mapping_name_to_dev: HashMap<String, u32>,
-    mapping_dev_to_name: HashMap<u32, (u32, u8)>
+    mapping_dev_to_name: HashMap<u32, (u32, u8)>,
 }
 
 impl PortManager {
     pub async fn new(switch: &SwitchConnection) -> PortManager {
-        let mut pm = PortManager { mapping_name_to_dev: HashMap::new(), mapping_dev_to_name: HashMap::new() };
+        let mut pm = PortManager {
+            mapping_name_to_dev: HashMap::new(),
+            mapping_dev_to_name: HashMap::new(),
+        };
         pm.init(switch).await;
         pm
     }
@@ -187,7 +196,7 @@ impl PortManager {
     async fn init(&mut self, switch: &SwitchConnection) {
         match self.do_init(switch).await {
             Ok(_) => {}
-            Err(e) => panic!("Error while initializing port manager: {:?}", e)
+            Err(e) => panic!("Error while initializing port manager: {:?}", e),
         }
     }
     async fn do_init(&mut self, switch: &SwitchConnection) -> Result<(), RBFRTError> {
@@ -201,11 +210,10 @@ impl PortManager {
             let key = entry.get_key("$PORT_NAME")?;
 
             let port_name = str::from_utf8(match &key {
-                MatchValue::ExactValue { bytes } => {
-                    bytes
-                }
-                _ => panic!("Wrong match value type for port.")
-            }).unwrap_or_else(|_| panic!("Error"));
+                MatchValue::ExactValue { bytes } => bytes,
+                _ => panic!("Wrong match value type for port."),
+            })
+            .unwrap_or_else(|_| panic!("Error"));
 
             let port_parts = port_name.split('/').collect::<Vec<&str>>();
 
@@ -213,36 +221,50 @@ impl PortManager {
                 let front_port = port_parts.first().unwrap().parse::<u32>().unwrap();
                 let channel = port_parts.get(1).unwrap().parse::<u8>().unwrap();
 
-                self.mapping_name_to_dev.insert(port_name.to_owned(), port_number);
-                self.mapping_dev_to_name.insert(port_number, (front_port, channel));
+                self.mapping_name_to_dev
+                    .insert(port_name.to_owned(), port_number);
+                self.mapping_dev_to_name
+                    .insert(port_number, (front_port, channel));
             }
         }
 
         Ok(())
     }
 
-    pub fn dev_port(&self, port: u32, channel:  u8) -> Result<u32, RBFRTError> {
-        if self.mapping_name_to_dev.contains_key(&format!("{}/{}", port, channel)) {
-            Ok(*self.mapping_name_to_dev.get(&format!("{}/{}", port, channel)).unwrap())
-        }
-        else {
-            Err(PortNotFound { name: format!("{}/{}", port, channel)})
+    pub fn dev_port(&self, port: u32, channel: u8) -> Result<u32, RBFRTError> {
+        if self
+            .mapping_name_to_dev
+            .contains_key(&format!("{}/{}", port, channel))
+        {
+            Ok(*self
+                .mapping_name_to_dev
+                .get(&format!("{}/{}", port, channel))
+                .unwrap())
+        } else {
+            Err(PortNotFound {
+                name: format!("{}/{}", port, channel),
+            })
         }
     }
 
     pub fn frontpanel_port(&self, dev_port: u32) -> Result<(u32, u8), RBFRTError> {
         if self.mapping_dev_to_name.contains_key(&dev_port) {
             Ok(*self.mapping_dev_to_name.get(&dev_port).unwrap())
-        }
-        else {
-            Err(PortNotFound { name: format!("{}", dev_port)})
+        } else {
+            Err(PortNotFound {
+                name: format!("{}", dev_port),
+            })
         }
     }
 
-    pub async fn add_port(&self, switch: &SwitchConnection, request: &Port) -> Result<(), RBFRTError> {
+    pub async fn add_port(
+        &self,
+        switch: &SwitchConnection,
+        request: &Port,
+    ) -> Result<(), RBFRTError> {
         let dev_port = self.dev_port(request.port, request.channel)?;
 
-        let port_req =  table::Request::new("$PORT")
+        let port_req = table::Request::new("$PORT")
             .match_key("$DEV_PORT", MatchValue::exact(dev_port))
             .action_data("$SPEED", request.speed.to_string())
             .action_data("$FEC", request.fec.to_string())
@@ -255,12 +277,19 @@ impl PortManager {
         Ok(())
     }
 
-    pub async fn add_ports(&self, switch: &SwitchConnection, requests: &[Port]) -> Result<(), RBFRTError> {
+    pub async fn add_ports(
+        &self,
+        switch: &SwitchConnection,
+        requests: &[Port],
+    ) -> Result<(), RBFRTError> {
         let all_requests: Result<Vec<table::Request>, RBFRTError> = requests
             .iter()
             .map(|request| {
                 let req = table::Request::new("$PORT")
-                    .match_key("$DEV_PORT", MatchValue::exact(self.dev_port(request.port, request.channel)?))
+                    .match_key(
+                        "$DEV_PORT",
+                        MatchValue::exact(self.dev_port(request.port, request.channel)?),
+                    )
                     .action_data("$SPEED", request.speed.to_string())
                     .action_data("$FEC", request.fec.to_string())
                     .action_data("$PORT_ENABLE", request.enable)
@@ -268,18 +297,22 @@ impl PortManager {
                     .action_data("$LOOPBACK_MODE", request.loopback.to_string());
 
                 Ok(req)
-            }).collect();
-
+            })
+            .collect();
 
         switch.write_table_entries(all_requests?).await?;
 
         Ok(())
     }
 
-    pub async fn disable_port(&self, switch: &SwitchConnection, request: &Port) -> Result<(), RBFRTError> {
+    pub async fn disable_port(
+        &self,
+        switch: &SwitchConnection,
+        request: &Port,
+    ) -> Result<(), RBFRTError> {
         let dev_port = self.dev_port(request.port, request.channel)?;
 
-        let port_req =  table::Request::new("$PORT")
+        let port_req = table::Request::new("$PORT")
             .match_key("$DEV_PORT", MatchValue::exact(dev_port))
             .action_data("$PORT_ENABLE", false);
 
@@ -288,10 +321,14 @@ impl PortManager {
         Ok(())
     }
 
-    pub async fn enable_port(&self, switch: &SwitchConnection, request: &Port) -> Result<(), RBFRTError> {
+    pub async fn enable_port(
+        &self,
+        switch: &SwitchConnection,
+        request: &Port,
+    ) -> Result<(), RBFRTError> {
         let dev_port = self.dev_port(request.port, request.channel)?;
 
-        let port_req =  table::Request::new("$PORT")
+        let port_req = table::Request::new("$PORT")
             .match_key("$DEV_PORT", MatchValue::exact(dev_port))
             .action_data("$PORT_ENABLE", true);
 
@@ -300,11 +337,15 @@ impl PortManager {
         Ok(())
     }
 
-    pub async fn delete_port(&self, switch: &SwitchConnection, request: &Port) -> Result<(), RBFRTError> {
+    pub async fn delete_port(
+        &self,
+        switch: &SwitchConnection,
+        request: &Port,
+    ) -> Result<(), RBFRTError> {
         let dev_port = self.dev_port(request.port, request.channel)?;
 
-        let port_req =  table::Request::new("$PORT")
-            .match_key("$DEV_PORT", MatchValue::exact(dev_port));
+        let port_req =
+            table::Request::new("$PORT").match_key("$DEV_PORT", MatchValue::exact(dev_port));
 
         switch.delete_table_entry(port_req).await?;
 
@@ -317,7 +358,11 @@ impl PortManager {
         Ok(())
     }
 
-    pub async fn update_port(&self, switch: &SwitchConnection, request: &Port) -> Result<(), RBFRTError> {
+    pub async fn update_port(
+        &self,
+        switch: &SwitchConnection,
+        request: &Port,
+    ) -> Result<(), RBFRTError> {
         self.delete_port(switch, request).await?;
         self.add_port(switch, request).await?;
 
@@ -328,7 +373,7 @@ impl PortManager {
     ///
     /// * `switch` - SwitchConnection object
     pub async fn get_ports(&self, switch: &SwitchConnection) -> Result<Vec<Port>, RBFRTError> {
-        let port_req =  table::Request::new("$PORT");
+        let port_req = table::Request::new("$PORT");
         let entries = switch.get_table_entry(port_req).await?;
 
         let mut port_list: Vec<Port> = vec![];
@@ -338,13 +383,16 @@ impl PortManager {
 
             let dev_port = match key {
                 MatchValue::ExactValue { bytes } => bytes.to_u32(),
-                _ => panic!("Wrong match value for port table.")
+                _ => panic!("Wrong match value for port table."),
             };
 
             let frontpanel_port = self.frontpanel_port(dev_port)?;
 
             let mut speed = e.get_action_data("$SPEED")?.get_data().to_string();
-            let mut auto_neg = e.get_action_data("$AUTO_NEGOTIATION")?.get_data().to_string();
+            let mut auto_neg = e
+                .get_action_data("$AUTO_NEGOTIATION")?
+                .get_data()
+                .to_string();
             let mut fec: String = e.get_action_data("$FEC")?.get_data().to_string();
             let enable = e.get_action_data("$PORT_ENABLE")?.get_data().to_bool();
             let status = e.get_action_data("$PORT_UP")?.get_data().to_bool();
@@ -365,7 +413,7 @@ impl PortManager {
                 fec: FEC::from_str(&fec).unwrap(),
                 enable,
                 status,
-                loopback: Loopback::from_str(loopback.trim()).unwrap()
+                loopback: Loopback::from_str(loopback.trim()).unwrap(),
             };
 
             port_list.push(p);
@@ -373,5 +421,4 @@ impl PortManager {
 
         Ok(port_list)
     }
-
 }

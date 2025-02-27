@@ -17,9 +17,9 @@
  * Steffen Lindner (steffen.lindner@uni-tuebingen.de)
  */
 
-use std::collections::HashMap;
 use crate::table;
 use crate::table::{TableEntry, ToBytes};
+use std::collections::HashMap;
 
 /// register index type
 /// default 32-bit
@@ -36,7 +36,10 @@ pub struct Register {
 
 impl Register {
     pub fn new(name: &str, entries: HashMap<IndexType, RegisterEntry>) -> Register {
-        Register { name: name.to_owned(), entries }
+        Register {
+            name: name.to_owned(),
+            entries,
+        }
     }
 
     /// Returns the name of the register
@@ -59,7 +62,12 @@ impl Register {
         let mut register_entries: HashMap<IndexType, RegisterEntry> = HashMap::new();
 
         for e in entries {
-            let index = table::ToBytes::to_u32(e.match_key.get("$REGISTER_INDEX").unwrap().get_exact_value());
+            let index = table::ToBytes::to_u32(
+                e.match_key
+                    .get("$REGISTER_INDEX")
+                    .unwrap()
+                    .get_exact_value(),
+            );
             let mut reg_data: HashMap<String, Vec<Vec<u8>>> = HashMap::new();
 
             for data in e.action_data {
@@ -124,11 +132,18 @@ pub struct Request {
 
 impl Request {
     pub fn new(name: &str) -> Request {
-        Request { name: name.to_owned(), index: None, data: HashMap::new() }
+        Request {
+            name: name.to_owned(),
+            index: None,
+            data: HashMap::new(),
+        }
     }
 
     pub fn index(self, index: IndexType) -> Request {
-        Request { index: Some(index), ..self }
+        Request {
+            index: Some(index),
+            ..self
+        }
     }
 
     pub fn get_name(&self) -> &str {

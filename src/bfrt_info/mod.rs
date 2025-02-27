@@ -24,8 +24,8 @@ mod bfrt_table_object;
 pub use bfrt_table_object::BFRTTableObject;
 
 mod bfrt_action;
-mod types;
 mod bfrt_table_key_object;
+mod types;
 pub use bfrt_table_key_object::BFRTTableKeyObject;
 
 mod bfrt_data;
@@ -36,12 +36,8 @@ pub use learn_filter::LearnFilterObject;
 pub use bfrt_data::BFRTData;
 pub use bfrt_data::BFRTSingleton;
 
-
-
-pub use types::TableType;
 pub use types::BFRTFieldType;
 pub use types::TableMatchTypes;
+pub use types::TableType;
 
 pub use bfrt_action::BFRTAction;
-
-

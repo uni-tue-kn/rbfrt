@@ -17,8 +17,8 @@
  * Steffen Lindner (steffen.lindner@uni-tuebingen.de)
  */
 
-use serde::Deserialize;
 use crate::bfrt_info::{BFRTFieldType, TableMatchTypes};
+use serde::Deserialize;
 
 #[derive(Deserialize, Debug, Clone)]
 pub struct BFRTTableKeyObject {
@@ -45,5 +45,4 @@ impl BFRTTableKeyObject {
     pub fn r#type(&self) -> &BFRTFieldType {
         &self.r#type
     }
-
 }

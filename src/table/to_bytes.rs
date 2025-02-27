@@ -20,7 +20,7 @@
 use crate::bfrt_info::Convert;
 use crate::error::RBFRTError;
 use std::array::TryFromSliceError;
-use std::net::{Ipv4Addr,Ipv6Addr};
+use std::net::{Ipv4Addr, Ipv6Addr};
 
 /// Converts internal data representation to vector of bytes
 pub trait ToBytes {
@@ -29,15 +29,27 @@ pub trait ToBytes {
         unimplemented!("Conversion not implemented.");
     }
 
-    fn to_u64(&self) -> u64 { unimplemented!("Conversion not implemented.");}
+    fn to_u64(&self) -> u64 {
+        unimplemented!("Conversion not implemented.");
+    }
     fn to_u128(&self) -> u128 {
         unimplemented!("Conversion not implemented.");
     }
-    fn to_string(&self) -> String { unimplemented!("Conversion not implemented.");}
-    fn to_bool(&self) -> bool { unimplemented!("Conversion not implemented.");}
-    fn to_ipv4(&self) -> Result<Ipv4Addr, RBFRTError> { unimplemented!("Conversion not implemented.");}
-    fn to_ipv6(&self) -> Result<Ipv6Addr, RBFRTError>{ unimplemented!("Conversion not implemented.");}
-    fn to_int_arr(&self) -> Vec<u32> { unimplemented!("Conversion not implemented");}
+    fn to_string(&self) -> String {
+        unimplemented!("Conversion not implemented.");
+    }
+    fn to_bool(&self) -> bool {
+        unimplemented!("Conversion not implemented.");
+    }
+    fn to_ipv4(&self) -> Result<Ipv4Addr, RBFRTError> {
+        unimplemented!("Conversion not implemented.");
+    }
+    fn to_ipv6(&self) -> Result<Ipv6Addr, RBFRTError> {
+        unimplemented!("Conversion not implemented.");
+    }
+    fn to_int_arr(&self) -> Vec<u32> {
+        unimplemented!("Conversion not implemented");
+    }
 }
 
 impl ToBytes for u8 {
@@ -80,8 +92,7 @@ impl ToBytes for bool {
     fn to_bytes(&self) -> Vec<u8> {
         if *self {
             vec![1]
-        }
-        else {
+        } else {
             vec![0]
         }
     }
@@ -115,7 +126,7 @@ impl ToBytes for Vec<u8> {
         self.iter().any(|&x| x > 0u8)
     }
 
-    /// Converts Vec<u8> of length 4 to Ipv4Addr. 
+    /// Converts Vec<u8> of length 4 to Ipv4Addr.
     /// Throws an error if vector length does not match.
     ///```
     /// use std::net::Ipv4Addr;
@@ -124,8 +135,12 @@ impl ToBytes for Vec<u8> {
     /// assert_eq!(ip.octets().to_vec(), vec![192,168,0,1])
     ///```
     fn to_ipv4(&self) -> Result<Ipv4Addr, RBFRTError> {
-        let octets: [u8; 4] = self[..].try_into()
-                                .map_err(|e: TryFromSliceError| RBFRTError::ByteConversionError { target: "Ipv4Addr".to_owned(), orig_e: e.into() })?;
+        let octets: [u8; 4] = self[..].try_into().map_err(|e: TryFromSliceError| {
+            RBFRTError::ByteConversionError {
+                target: "Ipv4Addr".to_owned(),
+                orig_e: e.into(),
+            }
+        })?;
         Ok(Ipv4Addr::from(octets))
     }
 
@@ -134,14 +149,19 @@ impl ToBytes for Vec<u8> {
         for (i, v) in self.iter().enumerate().step_by(4) {
             // TODO dont do unsafe ...
             ret.push(unsafe {
-                u32::from_be_bytes([*v, *self.get_unchecked(i+1), *self.get_unchecked(i+2), *self.get_unchecked(i+3)])
+                u32::from_be_bytes([
+                    *v,
+                    *self.get_unchecked(i + 1),
+                    *self.get_unchecked(i + 2),
+                    *self.get_unchecked(i + 3),
+                ])
             });
         }
 
         ret
     }
 
-    /// Converts Vec<u8> of length 4 to Ipv4Addr. 
+    /// Converts Vec<u8> of length 4 to Ipv4Addr.
     /// Throws an error if vector length does not match.
     ///```
     /// use std::net::Ipv6Addr;
@@ -151,8 +171,12 @@ impl ToBytes for Vec<u8> {
     ///```
     fn to_ipv6(&self) -> Result<Ipv6Addr, RBFRTError> {
         // convert Vec<u8> to [u8; 16]
-        let octets: [u8; 16] = self[..].try_into()
-                                .map_err(|e: TryFromSliceError| RBFRTError::ByteConversionError { target: "Ipv6Addr".to_owned(), orig_e: e.into() })?;
+        let octets: [u8; 16] = self[..].try_into().map_err(|e: TryFromSliceError| {
+            RBFRTError::ByteConversionError {
+                target: "Ipv6Addr".to_owned(),
+                orig_e: e.into(),
+            }
+        })?;
 
         // Conversion passes
         Ok(Ipv6Addr::from(octets))
@@ -170,7 +194,6 @@ impl ToBytes for &str {
         self.as_bytes().to_vec()
     }
 }
-
 
 impl ToBytes for Ipv4Addr {
     /// Converts an Ipv4Addr Object to Vec<u8> of length 4

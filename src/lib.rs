@@ -55,52 +55,54 @@
 //! }
 //! ```
 
-
-
+use std::collections::HashMap;
 use std::{fs, str};
-use std::collections::{HashMap};
 
 use std::io::Read;
-
-
 
 mod protos;
 use protos::bfrt_proto;
 
 mod bfrt_info;
 mod core;
-pub mod table;
-pub mod register;
 pub mod error;
+pub mod register;
+pub mod table;
 pub mod util;
 
-use tonic::{Response, Streaming};
-use bfrt_proto::TargetDevice;
 use bfrt_info::BFRTInfo;
+use bfrt_proto::TargetDevice;
+use tonic::{Response, Streaming};
 
+use crate::bfrt_proto::{
+    ForwardingPipelineConfig, ReadResponse, SetForwardingPipelineConfigRequest,
+    StreamMessageRequest, StreamMessageResponse, WriteResponse,
+};
 use bfrt_proto::bf_runtime_client::BfRuntimeClient;
 use bfrt_proto::GetForwardingPipelineConfigRequest;
+use table::{Request, RequestType, TableEntry};
 use tonic::transport::Channel;
-use table::{TableEntry, Request, RequestType};
-use crate::bfrt_proto::{ForwardingPipelineConfig, ReadResponse, SetForwardingPipelineConfigRequest, StreamMessageRequest, StreamMessageResponse, WriteResponse};
 
 use crate::bfrt_proto::forwarding_pipeline_config::Profile;
 use crate::bfrt_proto::set_forwarding_pipeline_config_request::{Action, DevInitMode};
 use crate::error::RBFRTError;
-use crate::error::RBFRTError::{ConnectionError, GetForwardingPipelineError, GRPCError, P4ProgramError, RequestEmpty, UnknownReadResult};
+use crate::error::RBFRTError::{
+    ConnectionError, GRPCError, GetForwardingPipelineError, P4ProgramError, RequestEmpty,
+    UnknownReadResult,
+};
 use crate::register::Register;
-use crate::table::{MatchValue};
+use crate::table::MatchValue;
 
-use log::{info, warn, debug};
-use tokio::sync::Mutex;
-use tokio_stream::wrappers::ReceiverStream;
 use crate::protos::bfrt_proto::data_field::Value;
 use crate::protos::bfrt_proto::stream_message_response::Update;
 use crate::util::Digest;
+use log::{debug, info, warn};
+use tokio::sync::Mutex;
+use tokio_stream::wrappers::ReceiverStream;
 
-use crossbeam_channel;
 use crate::protos::bfrt_proto::entity::Entity;
 use crate::protos::bfrt_proto::{ReadRequest, WriteRequest};
+use crossbeam_channel;
 
 /// Size of the internal digest queue
 /// Up to 10k elements with back pressure
@@ -118,13 +120,17 @@ pub struct SwitchConnection {
     p4_name: Option<String>,
     send_channel: tokio::sync::mpsc::Sender<StreamMessageRequest>,
     pub digest_queue: crossbeam_channel::Receiver<Digest>,
-    config: Option<String>
+    config: Option<String>,
 }
 
 #[allow(dead_code)]
 enum DispatchResult {
-    ReadResult { response: Response<Streaming<ReadResponse>> },
-    WriteResult { response: Response<WriteResponse> },
+    ReadResult {
+        response: Response<Streaming<ReadResponse>>,
+    },
+    WriteResult {
+        response: Response<WriteResponse>,
+    },
 }
 
 pub struct SwitchConnectionBuilder {
@@ -136,9 +142,7 @@ pub struct SwitchConnectionBuilder {
     config: Option<String>,
 }
 
-
 impl SwitchConnectionBuilder {
-
     /// Sets the client id id of the connection
     ///
     /// * `client_id` - ID
@@ -173,20 +177,25 @@ impl SwitchConnectionBuilder {
         self
     }
 
-
     /// Triggers the connection to the switch
     ///
     /// Triggers the connection to the switch and optionally writes a P4 program if `config` is set.
     pub async fn connect(self) -> Result<SwitchConnection, RBFRTError> {
-        debug!("Start switch connection to: {}.", format!("http://{}:{}", self.ip, self.port));
+        debug!(
+            "Start switch connection to: {}.",
+            format!("http://{}:{}", self.ip, self.port)
+        );
 
         match BfRuntimeClient::connect(format!("http://{}:{}", self.ip, self.port)).await {
             Ok(client) => {
                 let bf_client = Mutex::new(client);
 
-                let (request_tx, request_rx) = tokio::sync::mpsc::channel::<StreamMessageRequest>(DIGEST_QUEUE_SIZE);
-                let (response_tx, mut response_rx) = tokio::sync::mpsc::channel::<StreamMessageResponse>(DIGEST_QUEUE_SIZE);
-                let (digest_sender, digest_receiver) = crossbeam_channel::bounded(DIGEST_QUEUE_SIZE);
+                let (request_tx, request_rx) =
+                    tokio::sync::mpsc::channel::<StreamMessageRequest>(DIGEST_QUEUE_SIZE);
+                let (response_tx, mut response_rx) =
+                    tokio::sync::mpsc::channel::<StreamMessageResponse>(DIGEST_QUEUE_SIZE);
+                let (digest_sender, digest_receiver) =
+                    crossbeam_channel::bounded(DIGEST_QUEUE_SIZE);
                 let mut connection = SwitchConnection {
                     ip: self.ip,
                     port: self.port,
@@ -203,31 +212,41 @@ impl SwitchConnectionBuilder {
                     },
                     p4_name: self.p4_name,
                     send_channel: request_tx,
-                    digest_queue: digest_receiver
+                    digest_queue: digest_receiver,
                 };
 
                 if connection.config.is_some() {
-                    connection.set_forwarding_pipeline(&connection.config.as_ref().unwrap().clone()).await?;
+                    connection
+                        .set_forwarding_pipeline(&connection.config.as_ref().unwrap().clone())
+                        .await?;
                 }
 
                 if connection.p4_name.is_none() {
                     panic!("P4 name not set.")
                 }
 
-                connection.subscribe(request_rx, response_tx, &mut response_rx).await?;
+                connection
+                    .subscribe(request_rx, response_tx, &mut response_rx)
+                    .await?;
                 connection.bind_forwarding_pipeline().await?;
                 connection.bfrt_info = Some(connection.load_pipeline().await?);
 
                 connection.start_notification_thread(response_rx, digest_sender);
 
-                info!("Switch connection to {} successful.", format!("{}:{}", connection.ip, connection.port));
+                info!(
+                    "Switch connection to {} successful.",
+                    format!("{}:{}", connection.ip, connection.port)
+                );
 
                 Ok(connection)
             }
-            Err(e) => Err(ConnectionError { ip: self.ip, port: self.port, orig_e: Box::new(e) }),
+            Err(e) => Err(ConnectionError {
+                ip: self.ip,
+                port: self.port,
+                orig_e: Box::new(e),
+            }),
         }
     }
-
 }
 
 impl SwitchConnection {
@@ -242,17 +261,17 @@ impl SwitchConnection {
             device_id: 0,
             client_id: 1,
             p4_name: None,
-            config: None
+            config: None,
         }
     }
 
-
     /// Opens a notification channel.
     /// This is needed to bind to the device and to get notifications from the switch.
-    pub async fn subscribe(&mut self,
-                           request_rx: tokio::sync::mpsc::Receiver<StreamMessageRequest>,
-                           response_tx: tokio::sync::mpsc::Sender<StreamMessageResponse>,
-                           response_rx: &mut tokio::sync::mpsc::Receiver<StreamMessageResponse>
+    pub async fn subscribe(
+        &mut self,
+        request_rx: tokio::sync::mpsc::Receiver<StreamMessageRequest>,
+        response_tx: tokio::sync::mpsc::Sender<StreamMessageResponse>,
+        response_rx: &mut tokio::sync::mpsc::Receiver<StreamMessageResponse>,
     ) -> Result<(), RBFRTError> {
         // subscription request
         let subscribe_req = StreamMessageRequest {
@@ -266,17 +285,15 @@ impl SwitchConnection {
                         enable_idletimeout_notifications: true,
                         enable_port_status_change_notifications: true,
                     }),
-                    status: None
-                })
-            )
+                    status: None,
+                },
+            )),
         };
 
         let stream = ReceiverStream::new(request_rx);
         let req = tonic::Request::new(stream);
 
-        let mut clone = {
-            self.bf_client.lock().await.clone()
-        };
+        let mut clone = { self.bf_client.lock().await.clone() };
 
         // start thread to listen for notifications
         tokio::spawn(async move {
@@ -289,14 +306,15 @@ impl SwitchConnection {
                         let _ = response_tx.try_send(msg);
                     }
                     _ => {
-                        warn!("Got a notification that is currently not supported. Will be ignored.");
+                        warn!(
+                            "Got a notification that is currently not supported. Will be ignored."
+                        );
                     }
                 }
             }
 
             warn!("Notification channel closed.");
         });
-
 
         if self.send_channel.send(subscribe_req).await.is_err() {
             warn!("Notification endpoint hang.")
@@ -308,8 +326,7 @@ impl SwitchConnection {
             Update::Subscribe(sub) => {
                 if sub.status.unwrap().code != 0 {
                     panic!("Notification subscription failed.");
-                }
-                else {
+                } else {
                     info!("Notification subscription successful.")
                 }
             }
@@ -320,7 +337,6 @@ impl SwitchConnection {
 
         Ok(())
     }
-
 
     /// Loads the pipeline information from the switch
     async fn load_pipeline(&mut self) -> Result<BFRTInfo, RBFRTError> {
@@ -340,7 +356,8 @@ impl SwitchConnection {
 
                 // tofino internal tables
                 let non_p4_config = msg.non_p4_config.unwrap();
-                let non_p4: BFRTInfo = serde_json::from_slice(&non_p4_config.bfruntime_info).unwrap();
+                let non_p4: BFRTInfo =
+                    serde_json::from_slice(&non_p4_config.bfruntime_info).unwrap();
                 let non_p4_tables = non_p4.tables();
 
                 for v in msg.config {
@@ -354,14 +371,23 @@ impl SwitchConnection {
                     }
                 }
 
-                Err(P4ProgramError { name: self.p4_name.clone().unwrap()})
+                Err(P4ProgramError {
+                    name: self.p4_name.clone().unwrap(),
+                })
             }
-            Err(e) => Err(GetForwardingPipelineError { device_id: self.device_id, client_id: self.client_id, orig_e: Box::new(e) })
+            Err(e) => Err(GetForwardingPipelineError {
+                device_id: self.device_id,
+                client_id: self.client_id,
+                orig_e: Box::new(e),
+            }),
         }
     }
 
-    fn start_notification_thread(&self, mut response_rx: tokio::sync::mpsc::Receiver<StreamMessageResponse>,
-                                        digest_queue: crossbeam_channel::Sender<Digest>) {
+    fn start_notification_thread(
+        &self,
+        mut response_rx: tokio::sync::mpsc::Receiver<StreamMessageResponse>,
+        digest_queue: crossbeam_channel::Sender<Digest>,
+    ) {
         let local_bfrt_info = self.bfrt_info.clone();
 
         // start receive channel thread
@@ -391,7 +417,8 @@ impl SwitchConnection {
 
                                                 match data {
                                                     Value::Stream(data) => {
-                                                        digest_fields.insert(field_name.unwrap(), data);
+                                                        digest_fields
+                                                            .insert(field_name.unwrap(), data);
                                                     }
                                                     _ => {
                                                         warn!("Not supported digest field type received.");
@@ -403,7 +430,7 @@ impl SwitchConnection {
 
                                     let digest = Digest {
                                         name: filter.name.to_owned(),
-                                        data: digest_fields
+                                        data: digest_fields,
                                     };
 
                                     let _ = digest_queue.try_send(digest);
@@ -413,7 +440,6 @@ impl SwitchConnection {
                                 warn!("Received an error while retrieving learn filter: {}", err);
                             }
                         }
-
                     }
                     _ => {
                         warn!("Received not supported notification. Only Digests are currently supported.")
@@ -429,9 +455,11 @@ impl SwitchConnection {
     ///
     /// * `file_path` - Path to the file
     fn read_file_to_bytes(&self, file_path: &str) -> Vec<u8> {
-        let mut file = fs::File::open(file_path).unwrap_or_else(|_| panic!("Unable to read: {}", file_path));
+        let mut file =
+            fs::File::open(file_path).unwrap_or_else(|_| panic!("Unable to read: {}", file_path));
 
-        let metadata = fs::metadata(file_path).unwrap_or_else(|_| panic!("Unable to read metadata for {}.", file_path));
+        let metadata = fs::metadata(file_path)
+            .unwrap_or_else(|_| panic!("Unable to read metadata for {}.", file_path));
         let mut file_buffer = vec![0; metadata.len() as usize];
         file.read(&mut file_buffer).expect("buffer overflow");
 
@@ -446,8 +474,8 @@ impl SwitchConnection {
 
         let file = fs::File::open(config_file)
             .unwrap_or_else(|_| panic!("config file: {} not readable.", config_file));
-        let config: core::Configuration = serde_json::from_reader(file)
-            .expect("config file has invalid json format.");
+        let config: core::Configuration =
+            serde_json::from_reader(file).expect("config file has invalid json format.");
 
         let device = config.p4_devices.first().unwrap();
 
@@ -457,13 +485,16 @@ impl SwitchConnection {
         for program in &device.p4_programs {
             self.p4_name = Some(program.program_name.clone());
 
-            let profiles: Vec<Profile> = program.p4_pipelines.iter().map(|profile| Profile {
-                profile_name: profile.p4_pipeline_name.to_owned(),
-                context: self.read_file_to_bytes(&profile.context),
-                binary: self.read_file_to_bytes(&profile.config),
-                pipe_scope: profile.pipe_scope.clone(),
-            }).collect();
-
+            let profiles: Vec<Profile> = program
+                .p4_pipelines
+                .iter()
+                .map(|profile| Profile {
+                    profile_name: profile.p4_pipeline_name.to_owned(),
+                    context: self.read_file_to_bytes(&profile.context),
+                    binary: self.read_file_to_bytes(&profile.config),
+                    pipe_scope: profile.pipe_scope.clone(),
+                })
+                .collect();
 
             let forwarding_config = ForwardingPipelineConfig {
                 p4_name: program.program_name.to_owned(),
@@ -483,22 +514,28 @@ impl SwitchConnection {
             config: forwarding_configs,
         };
 
-        let req = self.bf_client
+        let req = self
+            .bf_client
             .lock()
             .await
-            .set_forwarding_pipeline_config(request).await;
+            .set_forwarding_pipeline_config(request)
+            .await;
 
         match req {
             Ok(_) => Ok(()),
-            Err(e) => {
-                Err(GRPCError { message: e.to_string(), details: format!("{:?}", e.details()) })
-            }
+            Err(e) => Err(GRPCError {
+                message: e.to_string(),
+                details: format!("{:?}", e.details()),
+            }),
         }
     }
 
     /// Binds to a P4 program
     async fn bind_forwarding_pipeline(&mut self) -> Result<(), RBFRTError> {
-        debug!("Bind forwarding pipeline: {}.", self.p4_name.as_ref().unwrap().to_owned());
+        debug!(
+            "Bind forwarding pipeline: {}.",
+            self.p4_name.as_ref().unwrap().to_owned()
+        );
 
         let forwarding_config = ForwardingPipelineConfig {
             p4_name: self.p4_name.as_ref().unwrap().to_owned(),
@@ -515,21 +552,24 @@ impl SwitchConnection {
             config: vec![forwarding_config],
         };
 
-
-        let req = self.bf_client
+        let req = self
+            .bf_client
             .lock()
             .await
-            .set_forwarding_pipeline_config(request).await;
-
+            .set_forwarding_pipeline_config(request)
+            .await;
 
         match req {
             Ok(_) => {
                 info!("Bind to forwarding pipeline successful.");
                 Ok(())
-            },
+            }
             Err(e) => {
                 warn!("Bind forwarding pipeline failed.");
-                Err(GRPCError { message: e.to_string(), details: format!("{:?}", e.details()) })
+                Err(GRPCError {
+                    message: e.to_string(),
+                    details: format!("{:?}", e.details()),
+                })
             }
         }
     }
@@ -543,20 +583,16 @@ impl SwitchConnection {
         }
     }
 
-    pub async fn get_table_entry(
-        &self,
-        request: Request,
-    ) -> Result<Vec<TableEntry>, RBFRTError> {
+    pub async fn get_table_entry(&self, request: Request) -> Result<Vec<TableEntry>, RBFRTError> {
         let entries = self.get_table_entries(vec![request]).await?;
 
         Ok(entries)
     }
 
-    pub async fn get_table_entries (
+    pub async fn get_table_entries(
         &self,
-        requests: Vec<Request>
+        requests: Vec<Request>,
     ) -> Result<Vec<TableEntry>, RBFRTError> {
-
         let mut veq_req = vec![];
         let mut entries = vec![];
 
@@ -573,15 +609,18 @@ impl SwitchConnection {
 
                     match &entity {
                         Entity::TableEntry(table_entry) => {
-                            let table = self.bfrt_info.as_ref().unwrap().table_get_by_id(table_entry.table_id)?;
+                            let table = self
+                                .bfrt_info
+                                .as_ref()
+                                .unwrap()
+                                .table_get_by_id(table_entry.table_id)?;
 
                             let entry = table.parse_read_request(entity, table.name())?;
 
                             entries.push(entry);
-
                         }
                         _ => {
-                          return Err(UnknownReadResult {});
+                            return Err(UnknownReadResult {});
                         }
                     }
                 }
@@ -600,7 +639,6 @@ impl SwitchConnection {
         let req = request.request_type(RequestType::Write);
         let vec_req = vec![req];
 
-
         self.dispatch_request(&vec_req).await?;
 
         Ok(())
@@ -608,7 +646,10 @@ impl SwitchConnection {
 
     pub async fn write_table_entries(&self, requests: Vec<Request>) -> Result<(), RBFRTError> {
         debug!("Write table entry {}", format!("{:?}", requests));
-        let req = requests.iter().map(|x| x.clone().request_type(RequestType::Write)).collect();
+        let req = requests
+            .iter()
+            .map(|x| x.clone().request_type(RequestType::Write))
+            .collect();
         self.dispatch_request(&req).await?;
 
         Ok(())
@@ -625,7 +666,10 @@ impl SwitchConnection {
 
     pub async fn update_table_entries(&self, requests: Vec<Request>) -> Result<(), RBFRTError> {
         debug!("Update table entry {}", format!("{:?}", requests));
-        let req = requests.iter().map(|x| x.clone().request_type(RequestType::Update)).collect();
+        let req = requests
+            .iter()
+            .map(|x| x.clone().request_type(RequestType::Update))
+            .collect();
         self.dispatch_request(&req).await?;
 
         Ok(())
@@ -679,30 +723,41 @@ impl SwitchConnection {
 
     pub async fn delete_table_entries(&self, request: Vec<Request>) -> Result<(), RBFRTError> {
         debug!("Delete table entries {}", format!("{:?}", request));
-        let vec_req = request.iter().map(|x| x.clone().request_type(RequestType::Delete)).collect();
+        let vec_req = request
+            .iter()
+            .map(|x| x.clone().request_type(RequestType::Delete))
+            .collect();
 
         self.dispatch_request(&vec_req).await?;
 
         Ok(())
     }
 
-    pub async fn get_register_entry(&self, request: register::Request) -> Result<Register, RBFRTError> {
+    pub async fn get_register_entry(
+        &self,
+        request: register::Request,
+    ) -> Result<Register, RBFRTError> {
         debug!("Read register {}", format!("{:?}", request));
-        let mut table_request = Request::new(request.get_name())
-            .request_type(RequestType::Read);
+        let mut table_request = Request::new(request.get_name()).request_type(RequestType::Read);
 
         if request.get_index().is_some() {
-            table_request = table_request.match_key("$REGISTER_INDEX", MatchValue::exact(request.get_index().unwrap()));
+            table_request = table_request.match_key(
+                "$REGISTER_INDEX",
+                MatchValue::exact(request.get_index().unwrap()),
+            );
         }
 
         let entries = self.get_table_entry(table_request).await?;
 
-        let name =  request.get_name();
+        let name = request.get_name();
 
         Ok(Register::parse_register_entries(entries, name))
     }
 
-    pub async fn get_register_entries(&self, requests: Vec<register::Request>) -> Result<Register, RBFRTError> {
+    pub async fn get_register_entries(
+        &self,
+        requests: Vec<register::Request>,
+    ) -> Result<Register, RBFRTError> {
         debug!("Read register {}", format!("{:?}", requests));
 
         let name = requests.first().as_ref().unwrap().get_name();
@@ -710,11 +765,13 @@ impl SwitchConnection {
         let mut req = vec![];
 
         for request in &requests {
-            let table_request = Request::new(request.get_name())
-                .request_type(RequestType::Read);
+            let table_request = Request::new(request.get_name()).request_type(RequestType::Read);
 
             if request.get_index().is_some() {
-                req.push(table_request.match_key("$REGISTER_INDEX", MatchValue::exact(request.get_index().unwrap())));
+                req.push(table_request.match_key(
+                    "$REGISTER_INDEX",
+                    MatchValue::exact(request.get_index().unwrap()),
+                ));
             }
         }
 
@@ -731,7 +788,10 @@ impl SwitchConnection {
             return Err(RBFRTError::MissingRegisterIndex);
         }
 
-        table_request = table_request.match_key("$REGISTER_INDEX", MatchValue::exact(request.get_index().unwrap()));
+        table_request = table_request.match_key(
+            "$REGISTER_INDEX",
+            MatchValue::exact(request.get_index().unwrap()),
+        );
 
         for (name, value) in request.get_data() {
             table_request = table_request.action_data(name, value.clone());
@@ -742,7 +802,10 @@ impl SwitchConnection {
         Ok(())
     }
 
-    pub async fn write_register_entries(&self, requests: Vec<register::Request>) -> Result<(), RBFRTError> {
+    pub async fn write_register_entries(
+        &self,
+        requests: Vec<register::Request>,
+    ) -> Result<(), RBFRTError> {
         debug!("Write register {}", format!("{:?}", requests));
 
         let mut write_req = vec![];
@@ -752,8 +815,10 @@ impl SwitchConnection {
                 return Err(RBFRTError::MissingRegisterIndex);
             }
 
-            let mut table_request = Request::new(req.get_name())
-                .match_key("$REGISTER_INDEX", MatchValue::exact(req.get_index().unwrap()));
+            let mut table_request = Request::new(req.get_name()).match_key(
+                "$REGISTER_INDEX",
+                MatchValue::exact(req.get_index().unwrap()),
+            );
 
             for (name, value) in req.get_data() {
                 table_request = table_request.action_data(name, value.clone());
@@ -768,7 +833,6 @@ impl SwitchConnection {
     }
 
     async fn dispatch_request(&self, request: &Vec<Request>) -> Result<DispatchResult, RBFRTError> {
-
         let bfrt_info = self.bfrt_info.as_ref().unwrap();
 
         if request.is_empty() {
@@ -785,7 +849,6 @@ impl SwitchConnection {
                     entities.push(entity);
                 }
 
-
                 let req = ReadRequest {
                     target: Some(self.get_target_device()),
                     client_id: self.client_id,
@@ -793,11 +856,7 @@ impl SwitchConnection {
                     p4_name: self.p4_name.as_ref().unwrap().to_owned(),
                 };
 
-                let response = self.bf_client
-                    .lock()
-                    .await
-                    .read(req)
-                    .await?;
+                let response = self.bf_client.lock().await.read(req).await?;
 
                 Ok(DispatchResult::ReadResult { response })
             }
@@ -818,12 +877,7 @@ impl SwitchConnection {
                     atomicity: 0,
                 };
 
-
-                let response = self.bf_client
-                    .lock()
-                    .await
-                    .write(req)
-                    .await?;
+                let response = self.bf_client.lock().await.write(req).await?;
 
                 Ok(DispatchResult::WriteResult { response })
             }
@@ -844,12 +898,7 @@ impl SwitchConnection {
                     atomicity: 0,
                 };
 
-
-                let response = self.bf_client
-                    .lock()
-                    .await
-                    .write(req)
-                    .await?;
+                let response = self.bf_client.lock().await.write(req).await?;
 
                 Ok(DispatchResult::WriteResult { response })
             }
@@ -862,7 +911,6 @@ impl SwitchConnection {
                     updates.push(update);
                 }
 
-
                 let req = WriteRequest {
                     target: Some(self.get_target_device()),
                     client_id: self.client_id,
@@ -871,11 +919,7 @@ impl SwitchConnection {
                     atomicity: 0,
                 };
 
-                let response = self.bf_client
-                    .lock()
-                    .await
-                    .write(req)
-                    .await?;
+                let response = self.bf_client.lock().await.write(req).await?;
 
                 Ok(DispatchResult::WriteResult { response })
             }

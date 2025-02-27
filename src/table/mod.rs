@@ -22,9 +22,9 @@ mod action_data;
 pub use match_value::MatchValue;
 mod match_value;
 
-pub use table_entry::TableEntry;
 pub use table_entry::Request;
 pub(crate) use table_entry::RequestType;
+pub use table_entry::TableEntry;
 pub use table_entry::TableOperation;
 mod table_entry;
 
