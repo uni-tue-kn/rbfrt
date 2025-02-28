@@ -19,13 +19,14 @@
 
 //! This crate implements an interface to a P4-programmable switch that can be controlled through the BFRuntime Interface.
 //!
-//! Example:
+//! # Example
 //!
 //! ```
 //! use rbfrt::{SwitchConnection, table};
-//! use rbfrt::table::{MatchValue};
+//! use rbfrt::table::{MatchValue, Request};
+//!
 //! async fn example() -> Result<(), Box<dyn std::error::Error>> {
-//!     let mut switch = SwitchConnection::builder("localhost", 50052)
+//!     let switch = SwitchConnection::builder("localhost", 50052)
 //!         .device_id(0)
 //!         .client_id(1)
 //!         .p4_name("my_p4_program")
@@ -34,10 +35,10 @@
 //!
 //!
 //!     let requests = vec![
-//!         table::Request::new("ingress.p4tg.frame_type.frame_type_monitor")
-//!             .match_key("hdr.ipv4.dst_addr", MatchValue::lpm(vec![10, 0, 0, 2], 32))
+//!         Request::new("ingress.p4tg.frame_type.frame_type_monitor")
+//!             .match_key("hdr.ipv4.dst_addr", MatchValue::lpm(vec![10u8, 0, 0, 2], 32))
 //!             .match_key("ig_intr_md.ingress_port", MatchValue::exact(0)),
-//!         table::Request::new("ingress.p4tg.tg_forward")
+//!         Request::new("ingress.p4tg.tg_forward")
 //!             .match_key("ig_intr_md.ingress_port", MatchValue::exact(10))
 //!             .match_key("ig_md.rand_value", MatchValue::range(20, 30))
 //!             .match_key("hdr.pkt_gen.app_id", MatchValue::exact(5))

@@ -1,5 +1,5 @@
-use rbfrt::util::port_manager::{Port, Speed, FEC};
 use rbfrt::util::PortManager;
+use rbfrt::util::{Port, Speed, FEC};
 use rbfrt::SwitchConnection;
 
 const CONFIG_FILE: &str = "example.conf";

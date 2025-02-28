@@ -81,7 +81,7 @@ impl TableEntry {
 /// ```
 /// use rbfrt::table::{Request, MatchValue};
 /// Request::new("ingress.p4tg.frame_type.frame_type_monitor")
-///      .match_key("hdr.ipv4.dst_addr", MatchValue::lpm(vec![10, 0, 0, 2], 32))
+///      .match_key("hdr.ipv4.dst_addr", MatchValue::lpm(vec![10u8, 0, 0, 2], 32))
 ///      .match_key("ig_intr_md.ingress_port", MatchValue::exact(0));
 /// ```
 

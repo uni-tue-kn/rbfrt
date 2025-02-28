@@ -240,10 +240,25 @@ impl PrettyPrinter {
     /// # Example
     ///
     /// ```
-    /// let tp = PrettyPrinter::new();
-    /// let req: table::Request = table::Request::new("ingress.pretty_table");
-    /// let res = switch.get_table_entry(req).await?
-    /// tp.print_table(res)?;
+    /// use rbfrt::SwitchConnection;
+    /// use rbfrt::table::Request;
+    /// use rbfrt::util::PrettyPrinter;
+    ///
+    /// async fn example() -> Result<(), Box<dyn std::error::Error>> {
+    ///     let switch = SwitchConnection::builder("localhost", 50052)
+    ///             .device_id(0)
+    ///             .client_id(1)
+    ///             .p4_name("my_p4_program")
+    ///             .connect()
+    ///             .await?;
+    ///
+    ///     let pp = PrettyPrinter::new();
+    ///     let req = Request::new("ingress.pretty_table");
+    ///     let res = switch.get_table_entry(req).await?;
+    ///     pp.print_table(res)?;
+    ///
+    ///     Ok(())
+    /// }
     /// ```
     pub fn print_table(&self, entries: Vec<TableEntry>) -> Result<(), RBFRTError> {
         // entries might span different tables -> group them by table

@@ -17,14 +17,16 @@
  * Steffen Lindner (steffen.lindner@uni-tuebingen.de)
  */
 
+use crate::table::ToBytes;
+
 /// Represents a match value.
 ///
-/// Example:
+/// # Example
+///
 /// ```
 /// use rbfrt::table::MatchValue;
-/// MatchValue::lpm(vec![10, 0, 0, 2], 32);
+/// MatchValue::lpm(vec![10u8, 0, 0, 2], 32);
 /// ```
-use crate::table::ToBytes;
 
 #[derive(Debug, Clone)]
 pub enum MatchValue {
@@ -47,6 +49,9 @@ pub enum MatchValue {
 
 impl MatchValue {
     /// Creates a new Exact match value
+    ///
+    /// # Example
+    ///
     /// ```
     /// use rbfrt::table::MatchValue;
     /// MatchValue::exact(10);
@@ -65,6 +70,9 @@ impl MatchValue {
     }
 
     /// Creates a new Range match value
+    ///
+    /// # Example
+    ///
     /// ```
     /// use rbfrt::table::MatchValue;
     /// MatchValue::range(20, 30);
@@ -87,9 +95,12 @@ impl MatchValue {
     }
 
     /// Creates a new LPM match value
+    ///
+    /// # Example
+    ///
     /// ```
     /// use rbfrt::table::MatchValue;
-    /// MatchValue::lpm(vec![10, 0, 0, 2], 32);
+    /// MatchValue::lpm(vec![10u8, 0, 0, 2], 32);
     /// ```
     pub fn lpm<T: ToBytes>(value: T, prefix_length: i32) -> MatchValue {
         MatchValue::LPM {
@@ -99,9 +110,12 @@ impl MatchValue {
     }
 
     /// Creates a new Ternary match value
+    ///
+    /// # Example
+    ///
     /// ```
     /// use rbfrt::table::MatchValue;
-    /// MatchValue::ternary(vec![7, 0, 7], vec![0, 0, 1]);
+    /// MatchValue::ternary(vec![7u8, 0, 7], vec![0u8, 0, 1]);
     /// ```
     pub fn ternary<T: ToBytes>(value: T, mask: T) -> MatchValue {
         MatchValue::Ternary {

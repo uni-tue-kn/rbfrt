@@ -108,13 +108,13 @@ impl RegisterEntry {
     }
 
     /// Returns all data of the register entry.
-    /// Each data entry contains a Vec<u8> for each pipe
+    /// Each data entry contains a `Vec<u8>` for each pipe
     pub fn get_data(&self) -> &HashMap<String, Vec<Vec<u8>>> {
         &self.data
     }
 
     /// Returns a specific data field of the entry.
-    /// Each data entry contains a Vec<u8> for each pipe
+    /// Each data entry contains a `Vec<u8>` for each pipe
     ///
     /// * `name` - Name of the data field
     pub fn get(&self, name: &str) -> Option<&Vec<Vec<u8>>> {

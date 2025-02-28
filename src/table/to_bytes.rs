@@ -126,12 +126,19 @@ impl ToBytes for Vec<u8> {
         self.iter().any(|&x| x > 0u8)
     }
 
-    /// Converts Vec<u8> of length 4 to Ipv4Addr.
-    /// Throws an error if vector length does not match.
+    /// Converts `Vec<u8>` of length 4 to `Ipv4Add`.
+    ///
+    /// # Errors
+    ///
+    /// Throws an `RBFRTError` if vector length does not match.
+    ///
+    /// # Example
+    ///
     ///```
     /// use std::net::Ipv4Addr;
     /// use rbfrt::table::ToBytes;
-    /// let ip = vec![192,168,0,1].to_ipv4().unwrap();
+    ///
+    /// let ip = vec![192u8,168,0,1].to_ipv4().unwrap();
     /// assert_eq!(ip.octets().to_vec(), vec![192,168,0,1])
     ///```
     fn to_ipv4(&self) -> Result<Ipv4Addr, RBFRTError> {
@@ -161,13 +168,20 @@ impl ToBytes for Vec<u8> {
         ret
     }
 
-    /// Converts Vec<u8> of length 4 to Ipv4Addr.
-    /// Throws an error if vector length does not match.
+    /// Converts `Vec<u8>` of length 4 to `Ipv4Add`.
+    ///
+    /// # Errors
+    ///
+    /// Throws an `RBFRTError` if vector length does not match.
+    ///
+    /// # Example
+    ///
     ///```
     /// use std::net::Ipv6Addr;
     /// use rbfrt::table::ToBytes;
-    /// let ip = vec![255,255,1,2,3,4,5,6,7,8,9,10,11,12,255,1].to_ipv6().unwrap();
-    /// assert_eq!(ip.octets().to_vec(), vec![255,255,1,2,3,4,5,6,7,8,9,10,11,12,255,1])
+    ///
+    /// let ip = vec![255u8,255,1,2,3,4,5,6,7,8,9,10,11,12,255,1].to_ipv6().unwrap();
+    /// assert_eq!(ip.octets().to_vec(), vec![255u8,255,1,2,3,4,5,6,7,8,9,10,11,12,255,1])
     ///```
     fn to_ipv6(&self) -> Result<Ipv6Addr, RBFRTError> {
         // convert Vec<u8> to [u8; 16]
@@ -196,7 +210,7 @@ impl ToBytes for &str {
 }
 
 impl ToBytes for Ipv4Addr {
-    /// Converts an Ipv4Addr Object to Vec<u8> of length 4
+    /// Converts an Ipv4Addr Object to`Vec<u8>` of length 4
     ///```
     /// use std::net::Ipv4Addr;
     /// use rbfrt::table::ToBytes;
@@ -209,7 +223,7 @@ impl ToBytes for Ipv4Addr {
 }
 
 impl ToBytes for Ipv6Addr {
-    /// Converts an Ipv6Addr Object to Vec<u8> of length 16
+    /// Converts an Ipv6Addr Object to `Vec<u8>` of length 16
     ///```
     /// use std::net::Ipv6Addr;
     /// use rbfrt::table::ToBytes;
