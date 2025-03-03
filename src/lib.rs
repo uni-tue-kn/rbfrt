@@ -21,11 +21,12 @@
 //!
 //! # Example
 //!
-//! ```
+//! ```no_run
 //! use rbfrt::{SwitchConnection, table};
 //! use rbfrt::table::{MatchValue, Request};
 //!
-//! async fn example() -> Result<(), Box<dyn std::error::Error>> {
+//! #[tokio::main]
+//! async fn main() -> Result<(), Box<dyn std::error::Error>> {
 //!     let switch = SwitchConnection::builder("localhost", 50052)
 //!         .device_id(0)
 //!         .client_id(1)
@@ -56,72 +57,50 @@
 //! }
 //! ```
 
-use std::collections::HashMap;
-use std::{fs, str};
-
-use std::io::Read;
-
-mod protos;
-use protos::bfrt_proto;
-
 mod bfrt;
 mod core;
 pub mod error;
+mod protos;
 pub mod register;
 pub mod table;
 pub mod util;
 
-use bfrt::BFRTInfo;
-use bfrt_proto::TargetDevice;
-use tonic::{Response, Streaming};
-
+use crate::bfrt_proto::forwarding_pipeline_config::Profile;
+use crate::bfrt_proto::set_forwarding_pipeline_config_request::{Action, DevInitMode};
 use crate::bfrt_proto::{
     ForwardingPipelineConfig, ReadResponse, SetForwardingPipelineConfigRequest,
     StreamMessageRequest, StreamMessageResponse, WriteResponse,
 };
-use bfrt_proto::bf_runtime_client::BfRuntimeClient;
-use bfrt_proto::GetForwardingPipelineConfigRequest;
-use table::{Request, RequestType, TableEntry};
-use tonic::transport::Channel;
-
-use crate::bfrt_proto::forwarding_pipeline_config::Profile;
-use crate::bfrt_proto::set_forwarding_pipeline_config_request::{Action, DevInitMode};
 use crate::error::RBFRTError;
 use crate::error::RBFRTError::{
     ConnectionError, GRPCError, GetForwardingPipelineError, P4ProgramError, RequestEmpty,
     UnknownReadResult,
 };
+use crate::protos::bfrt_proto::data_field::Value;
+use crate::protos::bfrt_proto::entity::Entity;
+use crate::protos::bfrt_proto::stream_message_response::Update;
+use crate::protos::bfrt_proto::{ReadRequest, WriteRequest};
 use crate::register::Register;
 use crate::table::MatchValue;
-
-use crate::protos::bfrt_proto::data_field::Value;
-use crate::protos::bfrt_proto::stream_message_response::Update;
 use crate::util::Digest;
+use bfrt::BFRTInfo;
+use bfrt_proto::bf_runtime_client::BfRuntimeClient;
+use bfrt_proto::GetForwardingPipelineConfigRequest;
+use bfrt_proto::TargetDevice;
 use log::{debug, info, warn};
+use protos::bfrt_proto;
+use std::collections::HashMap;
+use std::io::Read;
+use std::{fs, str};
+use table::{Request, RequestType, TableEntry};
 use tokio::sync::Mutex;
 use tokio_stream::wrappers::ReceiverStream;
-
-use crate::protos::bfrt_proto::entity::Entity;
-use crate::protos::bfrt_proto::{ReadRequest, WriteRequest};
+use tonic::transport::Channel;
+use tonic::{Response, Streaming};
 
 /// Size of the internal digest queue
 /// Up to 10k elements with back pressure
 const DIGEST_QUEUE_SIZE: usize = 10000;
-
-/// Represents the connection to a switch.
-pub struct SwitchConnection {
-    ip: String,
-    port: u16,
-    device_id: u32,
-    client_id: u32,
-    bf_client: Mutex<BfRuntimeClient<Channel>>,
-    bfrt_info: Option<BFRTInfo>,
-    target: TargetDevice,
-    p4_name: Option<String>,
-    send_channel: tokio::sync::mpsc::Sender<StreamMessageRequest>,
-    pub digest_queue: crossbeam_channel::Receiver<Digest>,
-    config: Option<String>,
-}
 
 #[allow(dead_code)]
 enum DispatchResult {
@@ -133,6 +112,25 @@ enum DispatchResult {
     },
 }
 
+/// A builder to create the [SwitchConnection] between the switch and the controller.
+///
+/// # Example
+///
+/// ```no_run
+/// use rbfrt::SwitchConnection;
+///
+/// #[tokio::main]
+/// async fn main() -> Result<(), Box<dyn std::error::Error>> {
+///     let switch = SwitchConnection::builder("localhost", 50052)
+///         .device_id(0)
+///         .client_id(1)
+///         .p4_name("my_p4_program")
+///         .connect()
+///         .await?;
+///
+///     Ok(())
+/// }
+/// ```
 pub struct SwitchConnectionBuilder {
     ip: String,
     port: u16,
@@ -143,43 +141,41 @@ pub struct SwitchConnectionBuilder {
 }
 
 impl SwitchConnectionBuilder {
-    /// Sets the client id id of the connection
-    ///
-    /// * `client_id` - ID
+    /// Sets the `client id` of the controller for this [SwitchConnection].
     pub fn client_id(mut self, client_id: u32) -> SwitchConnectionBuilder {
         self.client_id = client_id;
         self
     }
 
-    /// Sets the device id of the connection
+    /// Sets the `device id` of the switch for this [SwitchConnection].
     ///
-    /// * `device_id` - ID
+    /// Different `device ids` are used for multiple switches.
     pub fn device_id(mut self, device_id: u32) -> SwitchConnectionBuilder {
         self.device_id = device_id;
         self
     }
 
-    /// Sets the P4 program name
+    /// Sets the `P4 program name` running on the switch.
     ///
-    /// * `p4_name` - Name of the P4 program
+    /// See [config](crate::SwitchConnectionBuilder::config) to load a program onto the switch.
+    ///
+    /// Either one of [p4_name](crate::SwitchConnectionBuilder::p4_name) or [config](crate::SwitchConnectionBuilder::config) needs to be used to configure the [SwitchConnection].
     pub fn p4_name(mut self, p4_name: &str) -> SwitchConnectionBuilder {
         self.p4_name = Some(p4_name.to_owned());
         self
     }
 
-    /// Sets the path to the Tofino config file
+    /// Sets the path to the `config file` of the program to load onto the switch.
     ///
-    /// The config file is used to load a program onto the switch
+    /// See [p4_name](crate::SwitchConnectionBuilder::p4_name) to specify the `P4 program name` already running on the switch.
     ///
-    /// * `path` - Path to the config file
+    /// Either one of [config](crate::SwitchConnectionBuilder::config) or [p4_name](crate::SwitchConnectionBuilder::p4_name) needs to be used to configure the [SwitchConnection].
     pub fn config(mut self, path: &str) -> SwitchConnectionBuilder {
         self.config = Some(path.to_owned());
         self
     }
 
-    /// Triggers the connection to the switch
-    ///
-    /// Triggers the connection to the switch and optionally writes a P4 program if `config` is set.
+    /// Creates the [SwitchConnection] between the switch and controller.
     pub async fn connect(self) -> Result<SwitchConnection, RBFRTError> {
         debug!(
             "Start switch connection to: {}.",
@@ -247,6 +243,21 @@ impl SwitchConnectionBuilder {
             }),
         }
     }
+}
+
+/// Represents the connection between the switch and the controller.
+pub struct SwitchConnection {
+    ip: String,
+    port: u16,
+    device_id: u32,
+    client_id: u32,
+    bf_client: Mutex<BfRuntimeClient<Channel>>,
+    bfrt_info: Option<BFRTInfo>,
+    target: TargetDevice,
+    p4_name: Option<String>,
+    send_channel: tokio::sync::mpsc::Sender<StreamMessageRequest>,
+    pub digest_queue: crossbeam_channel::Receiver<Digest>,
+    config: Option<String>,
 }
 
 impl SwitchConnection {
