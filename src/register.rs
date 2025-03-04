@@ -21,8 +21,9 @@ use crate::table;
 use crate::table::{TableEntry, ToBytes};
 use std::collections::HashMap;
 
-/// register index type
-/// default 32-bit
+/// Register index type.
+///
+/// Default is a 32-bit register.
 pub type IndexType = u32;
 
 /// Represents a register that may contain values at several indices.
@@ -162,12 +163,13 @@ impl Request {
 
     /// Sets the `value` for the specified `name` in the register's index.
     ///
-    /// The `name` is used as the action data name in the dispatched request.
+    /// The `name` is used as the action data name in the dispatched [Request].
     pub fn data<T: ToBytes>(mut self, name: &str, value: T) -> Request {
         self.data.insert(name.to_owned(), value.to_bytes());
         self
     }
 
+    /// Returns the data to set through the [Request].
     pub fn get_data(&self) -> &HashMap<String, Vec<u8>> {
         &self.data
     }

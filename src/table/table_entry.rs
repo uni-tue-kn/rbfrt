@@ -22,24 +22,25 @@ use crate::table::action_data::ActionDataRepeated;
 use crate::table::{ActionData, MatchValue, ToBytes};
 use std::collections::HashMap;
 
-/// Represents a table entry internally
+/// Represents a table entry internally.
 #[derive(Debug)]
 pub struct TableEntry {
-    /// Id of the table
+    /// Id of the table.
     pub table_id: u32,
-    /// Name of the table
+    /// Name of the table.
     pub table_name: String,
-    /// Names and their values of the match keys
+    /// Names and their values of the match keys.
     pub match_keys: HashMap<String, MatchValue>,
-    /// Flag indicating if this is the default entry for the table
+    /// Flag indicating if this is the default entry for the table.
     pub default_entry: bool,
     /// Name of the associated action
     pub action: String,
-    /// Action data of the action, empty if not parameters are provided
+    /// Action data of the action, empty if not parameters are provided.
     pub action_data: Vec<ActionData>,
 }
 
 impl TableEntry {
+    /// Returns the [MatchValue] of the match key with the given `name`.
     pub fn get_key(&self, name: &str) -> Result<&MatchValue, RBFRTError> {
         if self.match_keys.contains_key(name) {
             Ok(self.match_keys.get(name).unwrap())
@@ -51,10 +52,12 @@ impl TableEntry {
         }
     }
 
+    /// Returns whether a match key with the given `name` is present.
     pub fn has_key(&self, name: &str) -> bool {
         self.match_keys.contains_key(name)
     }
 
+    /// Returns the [ActionData] which key has the given `name`.
     pub fn get_action_data(&self, name: &str) -> Result<&ActionData, RBFRTError> {
         for action in &self.action_data {
             if action.get_name() == name {
@@ -67,10 +70,12 @@ impl TableEntry {
         })
     }
 
+    /// Returns whether an action data has a key with the given `name`.
     pub fn has_action_data(&self, name: &str) -> bool {
         self.get_action_data(name).is_ok()
     }
 
+    /// Returns the action's name.
     pub fn get_action_name(&self) -> &str {
         &self.action
     }
@@ -115,14 +120,17 @@ impl TableOperation {
 /// ```
 #[derive(Debug, Clone)]
 pub struct Request {
-    /// name of the table
+    /// Name of the table.
     pub table_name: String,
-    /// list of match keys
+    /// List of match keys.
     match_keys: HashMap<String, MatchValue>,
-    /// action name
-    /// only required for write / update requests
+    /// Name of the action.
+    ///
+    /// # Note
+    ///
+    /// Only required for write / update requests
     action: Option<String>,
-    /// action data
+    /// Associated data of the action.
     action_data: Vec<ActionData>,
     action_data_repeated: Vec<ActionDataRepeated>,
     request_type: RequestType,

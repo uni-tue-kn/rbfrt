@@ -24,6 +24,33 @@ use std::collections::HashMap;
 
 use prettytable::{format, Row, Table};
 
+/// PrettyPrinter to display tables and their entries.
+///
+/// # Example
+///
+/// ```no_run
+/// use rbfrt::SwitchConnection;
+/// use rbfrt::table::Request;
+/// use rbfrt::util::PrettyPrinter;
+///
+/// #[tokio::main]
+/// async fn main() -> Result<(), Box<dyn std::error::Error>> {
+///     let switch = SwitchConnection::builder("localhost", 50052)
+///             .device_id(0)
+///             .client_id(1)
+///             .p4_name("my_p4_program")
+///             .connect()
+///             .await?;
+///
+///     let req = Request::new("ingress.pretty_table");
+///     let res = switch.get_table_entries(req).await?;
+///
+///     let pp = PrettyPrinter::new();
+///     pp.print_table(res)?;
+///
+///     Ok(())
+/// }
+/// ```
 pub struct PrettyPrinter {
     infer_address_type_flag: bool,
 }
@@ -36,25 +63,26 @@ impl Default for PrettyPrinter {
     }
 }
 
-/// PrettyPrinter to display MATs and their entries.
 impl PrettyPrinter {
+    /// Creates a new `default` [PrettyPrinter]
     pub fn new() -> PrettyPrinter {
         Default::default()
     }
 
-    /// Set the infer_address_type_flag
-    /// * `infer_address_type_flag` - The PrettyPrinter will try to infer MAC and IP addresses from column names
+    /// Sets the `infer_address_type_flag`.
+    /// If the `infer_address_type_flag` is set, the [PrettyPrinter] will try to infer MAC and IP addresses from column names.
     pub fn infer_address_type_flag(self, infer_address_type_flag: bool) -> PrettyPrinter {
         PrettyPrinter {
             infer_address_type_flag,
         }
     }
 
+    /// Returns if the `infer_address_type_flag` is set.
     pub fn get_infer_address_type_flag(&self) -> bool {
         self.infer_address_type_flag
     }
 
-    /// Converts data in the form of &Vec<u8> into strings
+    /// Converts data in the form of `Vec<u8>` into `String`.
     /// Up to a length of 128 bytes, the bytearray is converted to a number
     /// If the get_infer_address_type_flag is set, this function will try to infer
     /// the address type (MAC and IPv4) from the column name and data length
@@ -230,36 +258,9 @@ impl PrettyPrinter {
         }
     }
 
-    /// Prettyprint all given entries as tables.
+    /// Prettyprint all given `entries` as tables.
     /// Table entries need to be fetched from the switch first.
     /// Multiple tables will be printed if entries belong to different tables.
-    ///
-    /// # Attributes
-    /// * `entries` - All entries to print
-    ///
-    /// # Example
-    ///
-    /// ```
-    /// use rbfrt::SwitchConnection;
-    /// use rbfrt::table::Request;
-    /// use rbfrt::util::PrettyPrinter;
-    ///
-    /// async fn example() -> Result<(), Box<dyn std::error::Error>> {
-    ///     let switch = SwitchConnection::builder("localhost", 50052)
-    ///             .device_id(0)
-    ///             .client_id(1)
-    ///             .p4_name("my_p4_program")
-    ///             .connect()
-    ///             .await?;
-    ///
-    ///     let pp = PrettyPrinter::new();
-    ///     let req = Request::new("ingress.pretty_table");
-    ///     let res = switch.get_table_entries(req).await?;
-    ///     pp.print_table(res)?;
-    ///
-    ///     Ok(())
-    /// }
-    /// ```
     pub fn print_table(&self, entries: Vec<TableEntry>) -> Result<(), RBFRTError> {
         // entries might span different tables -> group them by table
         let mut grouped_tables: HashMap<String, Vec<TableEntry>> = HashMap::new();
