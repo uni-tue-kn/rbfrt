@@ -35,6 +35,7 @@ pub struct Register {
 }
 
 impl Register {
+    /// Creates a new [Register] with the provided `name` and `entries`.
     pub fn new(name: &str, entries: HashMap<IndexType, RegisterEntry>) -> Register {
         Register {
             name: name.to_owned(),
@@ -42,28 +43,29 @@ impl Register {
         }
     }
 
-    /// Returns the name of the register
+    /// Returns the `name of the register
     pub fn name(&self) -> &str {
         &self.name
     }
 
-    /// Returns all entries of the register
+    /// Returns all `entries` of the register
     pub fn entries(&self) -> &HashMap<IndexType, RegisterEntry> {
         &self.entries
     }
 
-    /// Returns an entry at a specific index of the register
+    /// Returns an [RegisterEntry] at a specific `index` of the register
     pub fn get(&self, index: IndexType) -> Option<&RegisterEntry> {
         self.entries.get(&index)
     }
 
+    /// Parse [TableEntries](TableEntry) into [RegisterEntryies](RegisterEntry) and creates a [Register] containing these entries.
     pub fn parse_register_entries(entries: Vec<TableEntry>, name: &str) -> Register {
         // convert regular table entry to register entry
         let mut register_entries: HashMap<IndexType, RegisterEntry> = HashMap::new();
 
         for e in entries {
             let index = table::ToBytes::to_u32(
-                e.match_key
+                e.match_keys
                     .get("$REGISTER_INDEX")
                     .unwrap()
                     .get_exact_value(),
@@ -102,21 +104,21 @@ impl RegisterEntry {
         RegisterEntry { index, data }
     }
 
-    /// Returns the index of the register entry
+    /// Returns the `index` of the register entry.
     pub fn get_index(&self) -> IndexType {
         self.index
     }
 
     /// Returns all data of the register entry.
+    ///
     /// Each data entry contains a `Vec<u8>` for each pipe
     pub fn get_data(&self) -> &HashMap<String, Vec<Vec<u8>>> {
         &self.data
     }
 
-    /// Returns a specific data field of the entry.
-    /// Each data entry contains a `Vec<u8>` for each pipe
+    /// Returns the data field with the specified `name`.
     ///
-    /// * `name` - Name of the data field
+    ///  Each data entry contains a `Vec<u8>` for each pipe
     pub fn get(&self, name: &str) -> Option<&Vec<Vec<u8>>> {
         self.data.get(name)
     }
@@ -131,6 +133,7 @@ pub struct Request {
 }
 
 impl Request {
+    /// Creates a new [Request] for the register with the given `name`.
     pub fn new(name: &str) -> Request {
         Request {
             name: name.to_owned(),
@@ -139,6 +142,7 @@ impl Request {
         }
     }
 
+    /// Returns a new [Request] with the updated [IndexType].
     pub fn index(self, index: IndexType) -> Request {
         Request {
             index: Some(index),
@@ -146,14 +150,19 @@ impl Request {
         }
     }
 
+    /// Returns the register's `name` of the [Request].
     pub fn get_name(&self) -> &str {
         &self.name
     }
 
+    /// Returns the register's `index` in the [Request].
     pub fn get_index(&self) -> &Option<IndexType> {
         &self.index
     }
 
+    /// Sets the `value` for the specified `name` in the register's index.
+    ///
+    /// The `name` is used as the action data name in the dispatched request.
     pub fn data<T: ToBytes>(mut self, name: &str, value: T) -> Request {
         self.data.insert(name.to_owned(), value.to_bytes());
         self

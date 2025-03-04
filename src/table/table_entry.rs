@@ -25,23 +25,24 @@ use std::collections::HashMap;
 /// Represents a table entry internally
 #[derive(Debug)]
 pub struct TableEntry {
-    /// id of the table
+    /// Id of the table
     pub table_id: u32,
-    /// name of the table
+    /// Name of the table
     pub table_name: String,
-    /// vec of match keys
-    pub match_key: HashMap<String, MatchValue>,
+    /// Names and their values of the match keys
+    pub match_keys: HashMap<String, MatchValue>,
+    /// Flag indicating if this is the default entry for the table
     pub default_entry: bool,
-    /// name of the associated action
+    /// Name of the associated action
     pub action: String,
-    /// action data of the action, empty if not parameters are provided
+    /// Action data of the action, empty if not parameters are provided
     pub action_data: Vec<ActionData>,
 }
 
 impl TableEntry {
     pub fn get_key(&self, name: &str) -> Result<&MatchValue, RBFRTError> {
-        if self.match_key.contains_key(name) {
-            Ok(self.match_key.get(name).unwrap())
+        if self.match_keys.contains_key(name) {
+            Ok(self.match_keys.get(name).unwrap())
         } else {
             Err(RBFRTError::UnknownKeyName {
                 name: name.to_string(),
@@ -51,7 +52,7 @@ impl TableEntry {
     }
 
     pub fn has_key(&self, name: &str) -> bool {
-        self.match_key.contains_key(name)
+        self.match_keys.contains_key(name)
     }
 
     pub fn get_action_data(&self, name: &str) -> Result<&ActionData, RBFRTError> {
@@ -75,18 +76,8 @@ impl TableEntry {
     }
 }
 
-/// Represents a table entry request.
-///
-/// Example:
-/// ```
-/// use rbfrt::table::{Request, MatchValue};
-/// Request::new("ingress.p4tg.frame_type.frame_type_monitor")
-///      .match_key("hdr.ipv4.dst_addr", MatchValue::lpm(vec![10u8, 0, 0, 2], 32))
-///      .match_key("ig_intr_md.ingress_port", MatchValue::exact(0));
-/// ```
-
 #[derive(Debug, Clone)]
-pub enum RequestType {
+pub(crate) enum RequestType {
     Read,
     Write,
     Update,
@@ -94,6 +85,7 @@ pub enum RequestType {
     Delete,
 }
 
+/// Represents all possible table operations.
 #[derive(Debug, Clone)]
 pub enum TableOperation {
     None,
@@ -111,6 +103,16 @@ impl TableOperation {
     }
 }
 
+/// Represents a table entry request.
+///
+/// # Example
+///
+/// ```
+/// use rbfrt::table::{Request, MatchValue};
+/// Request::new("ingress.p4tg.frame_type.frame_type_monitor")
+///      .match_key("hdr.ipv4.dst_addr", MatchValue::lpm(vec![10u8, 0, 0, 2], 32))
+///      .match_key("ig_intr_md.ingress_port", MatchValue::exact(0));
+/// ```
 #[derive(Debug, Clone)]
 pub struct Request {
     /// name of the table
@@ -194,7 +196,7 @@ impl Request {
         self
     }
 
-    pub fn request_type(mut self, request_type: RequestType) -> Request {
+    pub(crate) fn request_type(mut self, request_type: RequestType) -> Request {
         self.request_type = request_type;
         self
     }

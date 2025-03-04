@@ -21,7 +21,7 @@ async fn test_write_entry() -> Result<(), Box<dyn std::error::Error>> {
 
     let read_req = table::Request::new("ingress.lpm_forward");
 
-    let entries = switch.get_table_entry(read_req).await?;
+    let entries = switch.get_table_entries(read_req).await?;
 
     // default action exists always
     assert_eq!(entries.len(), 2);
@@ -47,7 +47,7 @@ async fn test_update_entry() -> Result<(), Box<dyn std::error::Error>> {
     switch.write_table_entry(req.clone()).await?;
 
     // verify entry
-    let entries = switch.get_table_entry(req.clone()).await?;
+    let entries = switch.get_table_entries(req.clone()).await?;
 
     assert_eq!(entries.len(), 1);
 
@@ -68,7 +68,7 @@ async fn test_update_entry() -> Result<(), Box<dyn std::error::Error>> {
     switch.update_table_entry(update).await?;
 
     // verify entry
-    let entries = switch.get_table_entry(req).await?;
+    let entries = switch.get_table_entries(req).await?;
 
     let val = entries.first().unwrap().get_action_name();
 
@@ -95,7 +95,7 @@ async fn test_delete_entry() -> Result<(), Box<dyn std::error::Error>> {
     switch.write_table_entry(req.clone()).await?;
 
     // verify entry
-    let entries = switch.get_table_entry(req.clone()).await?;
+    let entries = switch.get_table_entries(req.clone()).await?;
 
     assert_eq!(entries.len(), 1);
 
@@ -106,7 +106,7 @@ async fn test_delete_entry() -> Result<(), Box<dyn std::error::Error>> {
     switch.delete_table_entry(delete).await?;
 
     // verify
-    let entries = switch.get_table_entry(req).await?;
+    let entries = switch.get_table_entries(req).await?;
 
     assert_eq!(entries.len(), 0);
 

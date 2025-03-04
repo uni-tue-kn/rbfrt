@@ -106,7 +106,7 @@ impl PrettyPrinter {
         if !entries.is_empty() {
             let entry = &entries[0];
             let mut col_name: String;
-            for key in &entry.match_key {
+            for key in &entry.match_keys {
                 match key.1 {
                     MatchValue::ExactValue { bytes: _ } => {
                         col_name = format!("EXT:{}", key.0);
@@ -160,7 +160,7 @@ impl PrettyPrinter {
                 match key_name {
                     Some(key) => {
                         let values: Vec<&MatchValue> = entry
-                            .match_key
+                            .match_keys
                             .iter()
                             .filter(|entry| entry.0 == key)
                             .map(|entry| entry.1)
@@ -254,7 +254,7 @@ impl PrettyPrinter {
     ///
     ///     let pp = PrettyPrinter::new();
     ///     let req = Request::new("ingress.pretty_table");
-    ///     let res = switch.get_table_entry(req).await?;
+    ///     let res = switch.get_table_entries(req).await?;
     ///     pp.print_table(res)?;
     ///
     ///     Ok(())

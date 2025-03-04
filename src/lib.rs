@@ -46,7 +46,7 @@
 //!         ];
 //!
 //!     for req in requests {
-//!         let entries = switch.get_table_entry(req).await?;
+//!         let entries = switch.get_table_entries(req).await?;
 //!
 //!         for e in entries {
 //!             println!("{:?}", e);
@@ -121,12 +121,12 @@ enum DispatchResult {
 ///
 /// #[tokio::main]
 /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
-///     let switch = SwitchConnection::builder("localhost", 50052)
+///     let builder = SwitchConnection::builder("localhost", 50052)
 ///         .device_id(0)
 ///         .client_id(1)
-///         .p4_name("my_p4_program")
-///         .connect()
-///         .await?;
+///         .p4_name("my_p4_program");
+///
+///     let switch = builder.connect().await?;
 ///
 ///     Ok(())
 /// }
@@ -246,6 +246,24 @@ impl SwitchConnectionBuilder {
 }
 
 /// Represents the connection between the switch and the controller.
+///
+/// # Example
+///
+/// ```no_run
+/// use rbfrt::SwitchConnection;
+///
+/// #[tokio::main]
+/// async fn main() -> Result<(), Box<dyn std::error::Error>> {
+///     let switch = SwitchConnection::builder("localhost", 50052)
+///         .device_id(0)
+///         .client_id(1)
+///         .p4_name("my_p4_program")
+///         .connect()
+///         .await?;
+///
+///     Ok(())
+/// }
+/// ```
 pub struct SwitchConnection {
     ip: String,
     port: u16,
@@ -256,15 +274,15 @@ pub struct SwitchConnection {
     target: TargetDevice,
     p4_name: Option<String>,
     send_channel: tokio::sync::mpsc::Sender<StreamMessageRequest>,
+    /// Queue containing all digests of the connected switch.
     pub digest_queue: crossbeam_channel::Receiver<Digest>,
     config: Option<String>,
 }
 
 impl SwitchConnection {
-    /// Create a new switch connection object
+    /// Creates a new [SwitchConnectionBuilder] to build the connection between the switch and controller.
     ///
-    /// * `ip` - IP of device
-    /// * `port` - GRPC port
+    /// The switch is available at the `ip` address and runs a gRPC server listing on the specified `port`.
     pub fn builder(ip: &str, port: u16) -> SwitchConnectionBuilder {
         SwitchConnectionBuilder {
             ip: ip.to_owned(),
@@ -279,8 +297,8 @@ impl SwitchConnection {
     /// Opens a notification channel.
     /// This is needed to bind to the device and to get notifications from the switch.
     #[allow(deprecated)]
-    pub async fn subscribe(
-        &mut self,
+    async fn subscribe(
+        &self,
         request_rx: tokio::sync::mpsc::Receiver<StreamMessageRequest>,
         response_tx: tokio::sync::mpsc::Sender<StreamMessageResponse>,
         response_rx: &mut tokio::sync::mpsc::Receiver<StreamMessageResponse>,
@@ -351,7 +369,7 @@ impl SwitchConnection {
     }
 
     /// Loads the pipeline information from the switch
-    async fn load_pipeline(&mut self) -> Result<BFRTInfo, RBFRTError> {
+    async fn load_pipeline(&self) -> Result<BFRTInfo, RBFRTError> {
         debug!("Loading pipeline.");
         match self
             .bf_client
@@ -543,7 +561,7 @@ impl SwitchConnection {
     }
 
     /// Binds to a P4 program
-    async fn bind_forwarding_pipeline(&mut self) -> Result<(), RBFRTError> {
+    async fn bind_forwarding_pipeline(&self) -> Result<(), RBFRTError> {
         debug!(
             "Bind forwarding pipeline: {}.",
             self.p4_name.as_ref().unwrap().to_owned()
@@ -595,13 +613,36 @@ impl SwitchConnection {
         }
     }
 
-    pub async fn get_table_entry(&self, request: Request) -> Result<Vec<TableEntry>, RBFRTError> {
-        let entries = self.get_table_entries(vec![request]).await?;
+    /// Executes a table operation.
+    ///
+    /// See [TableOperation](crate::table::TableOperation) for supported operations, like synchronization of counters or registers.
+    pub async fn execute_operation(&self, request: Request) -> Result<(), RBFRTError> {
+        debug!("Execute operation {}", format!("{:?}", request));
+        let req = request.request_type(RequestType::Operation);
+
+        let vec_req = vec![req];
+
+        self.dispatch_request(&vec_req).await?;
+
+        Ok(())
+    }
+
+    /// Checks if the switch has a table with the specified `name`.
+    pub fn has_table(&self, name: &str) -> bool {
+        let t = self.bfrt_info.as_ref().unwrap().table_get(name);
+
+        t.is_ok()
+    }
+
+    /// Retrieves the entries of a single table.
+    pub async fn get_table_entries(&self, request: Request) -> Result<Vec<TableEntry>, RBFRTError> {
+        let entries = self.get_tables_entries(vec![request]).await?;
 
         Ok(entries)
     }
 
-    pub async fn get_table_entries(
+    /// Retrieves the entries of multiple tables.
+    pub async fn get_tables_entries(
         &self,
         requests: Vec<Request>,
     ) -> Result<Vec<TableEntry>, RBFRTError> {
@@ -645,6 +686,10 @@ impl SwitchConnection {
         }
     }
 
+    /// Writes a single entry into a table.
+    ///
+    /// The entry's key must not be present in the table to insert the new entry.
+    /// See [update_table_entry](crate::SwitchConnection::update_table_entry) to update an existing entry.
     pub async fn write_table_entry(&self, request: Request) -> Result<(), RBFRTError> {
         debug!("Write table entry {}", format!("{:?}", request));
 
@@ -656,6 +701,10 @@ impl SwitchConnection {
         Ok(())
     }
 
+    /// Writes a entries into one or multiple tables.
+    ///
+    /// The entries' keys must not be present in the table to insert the new entries.
+    /// See [update_table_entries](crate::SwitchConnection::update_table_entries) to update existing entries.
     pub async fn write_table_entries(&self, requests: Vec<Request>) -> Result<(), RBFRTError> {
         debug!("Write table entry {}", format!("{:?}", requests));
         let req = requests
@@ -667,6 +716,10 @@ impl SwitchConnection {
         Ok(())
     }
 
+    /// Updates a single entry in a table.
+    ///
+    /// The entry's key must be present in the table to update the entry.
+    /// See [write_table_entry](crate::SwitchConnection::write_table_entry) to insert a new entry.
     pub async fn update_table_entry(&self, request: Request) -> Result<(), RBFRTError> {
         debug!("Update table entry {}", format!("{:?}", request));
         let req = request.request_type(RequestType::Update);
@@ -676,6 +729,10 @@ impl SwitchConnection {
         Ok(())
     }
 
+    /// Updates multiple entries in one or multiple tables.
+    ///
+    /// The entries' keys must be present in the tables to update the entries.
+    /// See [write_table_entries](crate::SwitchConnection::write_table_entries) to insert new entries.
     pub async fn update_table_entries(&self, requests: Vec<Request>) -> Result<(), RBFRTError> {
         debug!("Update table entry {}", format!("{:?}", requests));
         let req = requests
@@ -687,6 +744,9 @@ impl SwitchConnection {
         Ok(())
     }
 
+    /// Deletes a entry in a table.
+    ///
+    /// See [clear_table](crate::SwitchConnection::clear_table) to delete all entries inside the table.
     pub async fn delete_table_entry(&self, request: Request) -> Result<(), RBFRTError> {
         debug!("Delete table entry {}", format!("{:?}", request));
         let req = request.request_type(RequestType::Delete);
@@ -698,41 +758,9 @@ impl SwitchConnection {
         Ok(())
     }
 
-    pub async fn clear_table(&self, name: &str) -> Result<(), RBFRTError> {
-        debug!("Clear table : {}", name);
-        let req = Request::new(name);
-
-        self.delete_table_entry(req).await?;
-
-        Ok(())
-    }
-
-    pub async fn clear_tables(&self, name: Vec<&str>) -> Result<(), RBFRTError> {
-        debug!("Clear tables : {:?}", name);
-        let reqs: Vec<Request> = name.iter().map(|x| Request::new(x)).collect();
-
-        self.delete_table_entries(reqs).await?;
-
-        Ok(())
-    }
-
-    pub async fn execute_operation(&self, request: Request) -> Result<(), RBFRTError> {
-        debug!("Execute operation {}", format!("{:?}", request));
-        let req = request.request_type(RequestType::Operation);
-
-        let vec_req = vec![req];
-
-        self.dispatch_request(&vec_req).await?;
-
-        Ok(())
-    }
-
-    pub fn has_table(&mut self, name: &str) -> bool {
-        let t = self.bfrt_info.as_ref().unwrap().table_get(name);
-
-        t.is_ok()
-    }
-
+    /// Deletes multiple entries in one or multiple tables.
+    ///
+    /// See [clear_tables](crate::SwitchConnection::clear_tables) to delete all entries inside the tables.
     pub async fn delete_table_entries(&self, request: Vec<Request>) -> Result<(), RBFRTError> {
         debug!("Delete table entries {}", format!("{:?}", request));
         let vec_req = request
@@ -745,6 +773,31 @@ impl SwitchConnection {
         Ok(())
     }
 
+    /// Deletes all entries in a table.
+    ///
+    /// See [delete_table_entry](crate::SwitchConnection::delete_table_entry) or [delete_table_entries](crate::SwitchConnection::delete_table_entries) to delete one or multiple entries inside the table.
+    pub async fn clear_table(&self, name: &str) -> Result<(), RBFRTError> {
+        debug!("Clear table : {}", name);
+        let req = Request::new(name);
+
+        self.delete_table_entry(req).await?;
+
+        Ok(())
+    }
+
+    /// Deletes all entries in multiple tables.
+    ///
+    /// See [delete_table_entry](crate::SwitchConnection::delete_table_entry) or [delete_table_entries](crate::SwitchConnection::delete_table_entries) to delete one or multiple entries inside the tables.
+    pub async fn clear_tables(&self, name: Vec<&str>) -> Result<(), RBFRTError> {
+        debug!("Clear tables : {:?}", name);
+        let reqs: Vec<Request> = name.iter().map(|x| Request::new(x)).collect();
+
+        self.delete_table_entries(reqs).await?;
+
+        Ok(())
+    }
+
+    /// Reads the value of a register.
     pub async fn get_register_entry(
         &self,
         request: register::Request,
@@ -759,13 +812,14 @@ impl SwitchConnection {
             );
         }
 
-        let entries = self.get_table_entry(table_request).await?;
+        let entries = self.get_table_entries(table_request).await?;
 
         let name = request.get_name();
 
         Ok(Register::parse_register_entries(entries, name))
     }
 
+    /// Reads the values of multiple registers or indices.
     pub async fn get_register_entries(
         &self,
         requests: Vec<register::Request>,
@@ -787,11 +841,12 @@ impl SwitchConnection {
             }
         }
 
-        let entries = self.get_table_entries(req).await?;
+        let entries = self.get_tables_entries(req).await?;
 
         Ok(Register::parse_register_entries(entries, name))
     }
 
+    /// Writes a value into a register.
     pub async fn write_register_entry(&self, request: register::Request) -> Result<(), RBFRTError> {
         debug!("Write register {}", format!("{:?}", request));
         let mut table_request = Request::new(request.get_name());
@@ -814,6 +869,7 @@ impl SwitchConnection {
         Ok(())
     }
 
+    /// Writes values into multiple registers or indices.
     pub async fn write_register_entries(
         &self,
         requests: Vec<register::Request>,
@@ -844,6 +900,12 @@ impl SwitchConnection {
         Ok(())
     }
 
+    /// Dispatches the requests to the switch.
+    ///
+    /// # Note
+    ///
+    /// Assumes all request are of the same kind.
+    /// You MUST NOT mix different request types, e.g., [Read](crate::table::table_entry::Read) and [Write](crate::table::table_entry::Write), in one dispatch!
     async fn dispatch_request(&self, request: &Vec<Request>) -> Result<DispatchResult, RBFRTError> {
         let bfrt_info = self.bfrt_info.as_ref().unwrap();
 

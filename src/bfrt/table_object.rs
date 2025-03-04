@@ -360,7 +360,7 @@ impl BFRTTableObject {
                 Ok(TableEntry {
                     table_id: t.table_id,
                     table_name: table_name.to_owned(),
-                    match_key: {
+                    match_keys: {
                         let mut match_keys: HashMap<String, MatchValue> = HashMap::new();
 
                         if let Some(val) = t.value.as_ref() {

@@ -201,7 +201,7 @@ impl PortManager {
     }
     async fn do_init(&mut self, switch: &SwitchConnection) -> Result<(), RBFRTError> {
         let req = table::Request::new("$PORT_STR_INFO");
-        let all_ports = switch.get_table_entry(req).await?;
+        let all_ports = switch.get_table_entries(req).await?;
 
         for entry in &all_ports {
             let e = entry.get_action_data("$DEV_PORT")?;
@@ -374,7 +374,7 @@ impl PortManager {
     /// * `switch` - SwitchConnection object
     pub async fn get_ports(&self, switch: &SwitchConnection) -> Result<Vec<Port>, RBFRTError> {
         let port_req = table::Request::new("$PORT");
-        let entries = switch.get_table_entry(port_req).await?;
+        let entries = switch.get_table_entries(port_req).await?;
 
         let mut port_list: Vec<Port> = vec![];
 
