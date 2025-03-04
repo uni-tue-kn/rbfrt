@@ -119,7 +119,7 @@ impl BFRTTableObject {
             for entry in request.get_action_data() {
                 let (field_width, field_type, field_id) = {
                     // get field width and whether its a singleton or not
-                    let singleton = self.get_singleton_by_name(entry.get_name());
+                    let singleton = self.get_singleton_by_name(entry.get_key());
 
                     // check if its associated with an action
                     // that's not the case if it has no action or if its a singleton
@@ -130,9 +130,9 @@ impl BFRTTableObject {
                     } else {
                         // it should be a regular action data field
                         let action = self.get_action_by_name(request.get_action_name())?;
-                        let action_data = action.get_action_data_by_name(entry.get_name())?;
+                        let action_data = action.get_action_data_by_name(entry.get_key())?;
                         let t = action
-                            .get_action_data_type(entry.get_name())
+                            .get_action_data_type(entry.get_key())
                             .unwrap()
                             .clone();
                         (
@@ -150,7 +150,7 @@ impl BFRTTableObject {
                         entry
                             .get_data()
                             .clone()
-                            .convert(entry.get_name(), field_width)?,
+                            .convert(entry.get_key(), field_width)?,
                     ),
                 };
 

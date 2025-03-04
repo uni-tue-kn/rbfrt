@@ -22,7 +22,7 @@ use crate::table::action_data::ActionDataRepeated;
 use crate::table::{ActionData, MatchValue, ToBytes};
 use std::collections::HashMap;
 
-/// Represents a table entry internally.
+/// Represents a table entry.
 #[derive(Debug)]
 pub struct TableEntry {
     /// Id of the table.
@@ -60,7 +60,7 @@ impl TableEntry {
     /// Returns the [ActionData] which key has the given `name`.
     pub fn get_action_data(&self, name: &str) -> Result<&ActionData, RBFRTError> {
         for action in &self.action_data {
-            if action.get_name() == name {
+            if action.get_key() == name {
                 return Ok(action);
             }
         }
@@ -108,12 +108,13 @@ impl TableOperation {
     }
 }
 
-/// Represents a table entry request.
+/// Represents request to write, update, or delete a [TableEntry] at the switch.
 ///
 /// # Example
 ///
 /// ```
 /// use rbfrt::table::{Request, MatchValue};
+///
 /// Request::new("ingress.p4tg.frame_type.frame_type_monitor")
 ///      .match_key("hdr.ipv4.dst_addr", MatchValue::lpm(vec![10u8, 0, 0, 2], 32))
 ///      .match_key("ig_intr_md.ingress_port", MatchValue::exact(0));
@@ -128,7 +129,7 @@ pub struct Request {
     ///
     /// # Note
     ///
-    /// Only required for write / update requests
+    /// Only required for write / update [Requests](Request).
     action: Option<String>,
     /// Associated data of the action.
     action_data: Vec<ActionData>,
@@ -139,7 +140,11 @@ pub struct Request {
     pipe: Option<u32>,
 }
 
+#[allow(dead_code)]
 impl Request {
+    /// Creates a new empty table [Request] for a table with the specified `table_name`.
+    ///
+    /// The request type, e.g., read or write, will be set by using the approproate function in the [SwitchConnection](crate::SwitchConnection), e.g., [get_table_entries](crate::SwitchConnection::get_table_entries) or [write_table_entries](crate::SwitchConnection::write_table_entries).
     pub fn new(table_name: &str) -> Request {
         Request {
             table_name: table_name.to_owned(),
@@ -154,90 +159,114 @@ impl Request {
         }
     }
 
-    /// sets the list of the requested match keys
-    pub fn match_keys(mut self, match_keys: HashMap<String, MatchValue>) -> Request {
-        self.match_keys = match_keys;
-        self
+    /// Returns the table's name.
+    pub fn get_table_name(&self) -> &str {
+        &self.table_name
     }
 
-    /// sets a match key that is requested
+    /// Adds a match key to the list of match keys.
     pub fn match_key(mut self, name: &str, match_value: MatchValue) -> Request {
         self.match_keys.insert(name.to_owned(), match_value);
         self
     }
 
+    /// Replaces the list of the match keys with the provided `match_keys`.
+    pub fn match_keys(mut self, match_keys: HashMap<String, MatchValue>) -> Request {
+        self.match_keys = match_keys;
+        self
+    }
+
+    /// Returns all match keys.
+    pub fn get_match_keys(&self) -> &HashMap<String, MatchValue> {
+        &self.match_keys
+    }
+
+    /// Sets the action name.
     pub fn action(mut self, action: &str) -> Request {
         self.action = Some(action.to_owned());
         self
     }
 
+    /// Returns the [action's](crate::table::Request::action) name.
+    pub fn get_action_name(&self) -> &str {
+        self.action.as_ref().unwrap()
+    }
+
+    /// Returns if an action is specified in the [Request].
     pub fn has_action(&self) -> bool {
         self.action.is_some()
     }
 
-    pub fn action_data<T: ToBytes>(mut self, name: &str, data: T) -> Request {
-        self.action_data.push(ActionData::new(name, data));
-        self
-    }
-
-    pub fn default(mut self, is_default: bool) -> Request {
-        self.is_default_entry = is_default;
-        self
-    }
-
+    /// Sets the pipe the [Request] is for.
     pub fn pipe(mut self, pipe: u32) -> Request {
         self.pipe = Some(pipe);
         self
     }
 
+    /// Returns the [Request]'s pipe for which the
     pub fn get_pipe(&self) -> Option<u32> {
         self.pipe
     }
 
+    /// Sets if the [TableEntry] specified by this [Request] has to be used as the default entry in the switch.
+    pub fn default(mut self, is_default: bool) -> Request {
+        self.is_default_entry = is_default;
+        self
+    }
+
+    /// Returns if the [TableEntry] specified by this [Request] is set to be the default entry in the switch.
     pub fn is_default(&self) -> bool {
         self.is_default_entry
     }
 
-    pub fn action_data_repeated<T: ToBytes>(mut self, name: &str, data: Vec<T>) -> Request {
+    /// Sets the action associated [ActionData].
+    ///
+    /// # Note
+    ///
+    /// You need to specify an [action](crate::table::Request::action) for the associated data.
+    pub fn action_data<T: ToBytes>(mut self, name: &str, data: T) -> Request {
+        self.action_data.push(ActionData::new(name, data));
+        self
+    }
+
+    /// Returns the [ActionData] associated with the [action](crate::table::Request::action).
+    pub fn get_action_data(&self) -> &Vec<ActionData> {
+        &self.action_data
+    }
+
+    /// Sets the action associated [ActionDataRepeated].
+    /// # Note
+    ///
+    /// You need to specify an [action](crate::table::Request::action) for the associated [ActionDataRepeated].
+    pub(crate) fn action_data_repeated<T: ToBytes>(mut self, name: &str, data: Vec<T>) -> Request {
         self.action_data_repeated
             .push(ActionDataRepeated::new(name, data));
         self
     }
 
+    /// Returns the [ActionDataRepeated] associated with the [action](crate::table::Request::action).
+    pub(crate) fn get_action_data_repeated(&self) -> &Vec<ActionDataRepeated> {
+        &self.action_data_repeated
+    }
+
+    /// Sets the [RequestType].
     pub(crate) fn request_type(mut self, request_type: RequestType) -> Request {
         self.request_type = request_type;
         self
     }
 
-    pub fn operation(mut self, operation: TableOperation) -> Request {
-        self.operation = operation;
-        self
-    }
-
-    pub fn get_action_name(&self) -> &str {
-        self.action.as_ref().unwrap()
-    }
-
-    pub fn get_action_data(&self) -> &Vec<ActionData> {
-        &self.action_data
-    }
-
-    pub fn get_table_name(&self) -> &str {
-        &self.table_name
-    }
-
-    pub fn get_action_data_repeated(&self) -> &Vec<ActionDataRepeated> {
-        &self.action_data_repeated
-    }
-    /// returns match keys
-    pub fn get_match_keys(&self) -> &HashMap<String, MatchValue> {
-        &self.match_keys
-    }
-
+    /// Returns the [RequestType].
     pub(crate) fn get_type(&self) -> &RequestType {
         &self.request_type
     }
 
+    /// Sets the [TableOperation].
+    pub(crate) fn operation(mut self, operation: TableOperation) -> Request {
+        self.operation = operation;
+        self
+    }
+
+    /// Returns the [TableOperation].
     pub(crate) fn get_operation(&self) -> &TableOperation {
         &self.operation
     }

@@ -19,7 +19,7 @@
 
 use crate::table::ToBytes;
 
-/// Represents the data of an action
+/// Represents data associated with an action.
 #[derive(Debug, Clone)]
 pub struct ActionData {
     /// name of the action parameter
@@ -37,6 +37,7 @@ pub struct ActionDataRepeated {
 }
 
 impl ActionData {
+    /// Creates a new [ActionData] mapping the `key` to the `data`.
     pub fn new<T: ToBytes>(key: &str, data: T) -> Self {
         ActionData {
             key: key.to_owned(),
@@ -44,14 +45,17 @@ impl ActionData {
         }
     }
 
-    pub fn get_name(&self) -> &str {
+    /// Returns the key mapped to the data.
+    pub fn get_key(&self) -> &str {
         &self.key
     }
 
+    /// Returns the data associated with the key.
     pub fn get_data(&self) -> &Vec<u8> {
         &self.data
     }
 
+    /// Returns the data as an [u32].
     pub fn as_u32(&self) -> u32 {
         self.get_data().to_u32()
     }

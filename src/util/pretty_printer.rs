@@ -241,10 +241,10 @@ impl PrettyPrinter {
         let mut action_data_row: Vec<String> = vec![];
 
         for action_data in &entry.action_data {
-            action_data_header_row.push(action_data.get_name().to_string());
+            action_data_header_row.push(action_data.get_key().to_string());
 
             let action_data_str =
-                self.convert_data_to_string(action_data.get_name(), action_data.get_data());
+                self.convert_data_to_string(action_data.get_key(), action_data.get_data());
 
             action_data_row.push(action_data_str);
         }

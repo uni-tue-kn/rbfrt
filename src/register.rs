@@ -74,7 +74,7 @@ impl Register {
             let mut reg_data: HashMap<String, Vec<Vec<u8>>> = HashMap::new();
 
             for data in e.action_data {
-                let key = data.get_name();
+                let key = data.get_key();
                 let value = data.get_data();
 
                 // key already exists

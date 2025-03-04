@@ -22,7 +22,7 @@ use crate::error::RBFRTError;
 use std::array::TryFromSliceError;
 use std::net::{Ipv4Addr, Ipv6Addr};
 
-/// Converts internal data representation to vector of bytes
+/// Converts internal data representation to vector of bytes.
 pub trait ToBytes {
     fn to_bytes(&self) -> Vec<u8>;
     fn to_u32(&self) -> u32 {
