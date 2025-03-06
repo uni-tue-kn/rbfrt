@@ -223,7 +223,7 @@ impl Request {
     ///
     /// # Note
     ///
-    /// You need to specify an [action](crate::table::Request::action) for the associated data.
+    /// You may need to specify an [action](crate::table::Request::action) for the associated data.
     pub fn action_data<T: ToBytes>(mut self, name: &str, data: T) -> Request {
         self.action_data.push(ActionData::new(name, data));
         self
@@ -237,16 +237,27 @@ impl Request {
     /// Sets the action associated [ActionDataRepeated].
     /// # Note
     ///
-    /// You need to specify an [action](crate::table::Request::action) for the associated [ActionDataRepeated].
-    pub(crate) fn action_data_repeated<T: ToBytes>(mut self, name: &str, data: Vec<T>) -> Request {
+    /// You may need to specify an [action](crate::table::Request::action) for the associated [ActionDataRepeated].
+    pub fn action_data_repeated<T: ToBytes>(mut self, name: &str, data: Vec<T>) -> Request {
         self.action_data_repeated
             .push(ActionDataRepeated::new(name, data));
         self
     }
 
     /// Returns the [ActionDataRepeated] associated with the [action](crate::table::Request::action).
-    pub(crate) fn get_action_data_repeated(&self) -> &Vec<ActionDataRepeated> {
+    pub fn get_action_data_repeated(&self) -> &Vec<ActionDataRepeated> {
         &self.action_data_repeated
+    }
+
+    /// Sets the [TableOperation].
+    pub fn operation(mut self, operation: TableOperation) -> Request {
+        self.operation = operation;
+        self
+    }
+
+    /// Returns the [TableOperation].
+    pub fn get_operation(&self) -> &TableOperation {
+        &self.operation
     }
 
     /// Sets the [RequestType].
@@ -258,16 +269,5 @@ impl Request {
     /// Returns the [RequestType].
     pub(crate) fn get_type(&self) -> &RequestType {
         &self.request_type
-    }
-
-    /// Sets the [TableOperation].
-    pub(crate) fn operation(mut self, operation: TableOperation) -> Request {
-        self.operation = operation;
-        self
-    }
-
-    /// Returns the [TableOperation].
-    pub(crate) fn get_operation(&self) -> &TableOperation {
-        &self.operation
     }
 }

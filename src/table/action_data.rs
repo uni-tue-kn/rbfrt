@@ -28,11 +28,12 @@ pub struct ActionData {
     data: Vec<u8>,
 }
 
+/// Represents additional data associated with an action.
 #[derive(Debug, Clone)]
 pub struct ActionDataRepeated {
-    /// name of the action parameter
+    /// Name of the action parameter.
     key: String,
-    /// data of the action parameter
+    /// Data of the action parameter.
     data: Vec<Vec<u8>>,
 }
 
@@ -45,12 +46,12 @@ impl ActionData {
         }
     }
 
-    /// Returns the key mapped to the data.
+    /// Returns the `key` mapped to the `data`.
     pub fn get_key(&self) -> &str {
         &self.key
     }
 
-    /// Returns the data associated with the key.
+    /// Returns the `data` associated with the `key`.
     pub fn get_data(&self) -> &Vec<u8> {
         &self.data
     }
@@ -62,6 +63,7 @@ impl ActionData {
 }
 
 impl ActionDataRepeated {
+    /// Creates a new [ActionDataRepeated] mapping the `key` to the `data`.
     pub fn new<T: ToBytes>(key: &str, data: Vec<T>) -> Self {
         ActionDataRepeated {
             key: key.to_owned(),
@@ -69,10 +71,12 @@ impl ActionDataRepeated {
         }
     }
 
-    pub fn get_name(&self) -> &str {
+    /// Returns the `key` mapped to the `data`.
+    pub fn get_key(&self) -> &str {
         &self.key
     }
 
+    /// Returns the `data` associated with the `key`.
     pub fn get_data(&self) -> &Vec<Vec<u8>> {
         &self.data
     }

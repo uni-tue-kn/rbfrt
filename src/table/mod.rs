@@ -17,16 +17,15 @@
  * Steffen Lindner (steffen.lindner@uni-tuebingen.de)
  */
 pub use action_data::ActionData;
-mod action_data;
-
+pub use action_data::ActionDataRepeated;
 pub use match_value::MatchValue;
-mod match_value;
-
 pub use table_entry::Request;
 pub(crate) use table_entry::RequestType;
 pub use table_entry::TableEntry;
 pub use table_entry::TableOperation;
-mod table_entry;
-
 pub use to_bytes::ToBytes;
+
+mod action_data;
+mod match_value;
+mod table_entry;
 mod to_bytes;
