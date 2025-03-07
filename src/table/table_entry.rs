@@ -219,32 +219,25 @@ impl Request {
         self.is_default_entry
     }
 
-    /// Sets the action associated [ActionData].
-    ///
-    /// # Note
-    ///
-    /// You may need to specify an [action](crate::table::Request::action) for the associated data.
+    /// Adds the associated [ActionData].
     pub fn action_data<T: ToBytes>(mut self, name: &str, data: T) -> Request {
         self.action_data.push(ActionData::new(name, data));
         self
     }
 
-    /// Returns the [ActionData] associated with the [action](crate::table::Request::action).
+    /// Returns the associated [ActionData].
     pub fn get_action_data(&self) -> &Vec<ActionData> {
         &self.action_data
     }
 
-    /// Sets the action associated [ActionDataRepeated].
-    /// # Note
-    ///
-    /// You may need to specify an [action](crate::table::Request::action) for the associated [ActionDataRepeated].
+    /// Adds the associated [ActionDataRepeated].
     pub fn action_data_repeated<T: ToBytes>(mut self, name: &str, data: Vec<T>) -> Request {
         self.action_data_repeated
             .push(ActionDataRepeated::new(name, data));
         self
     }
 
-    /// Returns the [ActionDataRepeated] associated with the [action](crate::table::Request::action).
+    /// Returns associated the [ActionDataRepeated].
     pub fn get_action_data_repeated(&self) -> &Vec<ActionDataRepeated> {
         &self.action_data_repeated
     }

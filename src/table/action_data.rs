@@ -20,20 +20,28 @@
 use crate::table::ToBytes;
 
 /// Represents data associated with an action.
+///
+/// The data represents a single value, e.g., `string` or `bool`.
+/// For further information, see [Open-Tofino protobuf definition](https://github.com/barefootnetworks/Open-Tofino/blob/master/share/bf_rt_shared/proto/bfruntime.proto).
 #[derive(Debug, Clone)]
 pub struct ActionData {
-    /// name of the action parameter
+    /// Name of the action parameter
     key: String,
-    /// data of the action parameter
+    /// Data of the action parameter.
+    /// The value is converted to a byte vector.
     data: Vec<u8>,
 }
 
-/// Represents additional data associated with an action.
+/// Represents data associated with an action.
+///
+/// The data represents a list of values, e.g., `IntArray` or `BoolArray`.
+/// For further information, see [Open-Tofino protobuf definition](https://github.com/barefootnetworks/Open-Tofino/blob/master/share/bf_rt_shared/proto/bfruntime.proto).
 #[derive(Debug, Clone)]
 pub struct ActionDataRepeated {
     /// Name of the action parameter.
     key: String,
-    /// Data of the action parameter.
+    /// List of data of the action parameter.
+    /// Each value is converted to a byte vector.
     data: Vec<Vec<u8>>,
 }
 
