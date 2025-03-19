@@ -95,14 +95,11 @@ impl PrettyPrinter {
 
         if data.len() <= 4 {
             address = ToString::to_string(&data.to_u32());
-        }
-        else if data.len() <= 8 {
+        } else if data.len() <= 8 {
             address = ToString::to_string(&data.to_u64());
-        }
-        else if data.len() <= 16 {
+        } else if data.len() <= 16 {
             address = ToString::to_string(&data.to_u128());
-        } 
-        else if data.len() % 4 == 0 {
+        } else if data.len() % 4 == 0 {
             address = format!("{:?}", data.to_int_arr());
         } else {
             address = format!("{:?}", data);
