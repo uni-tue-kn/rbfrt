@@ -18,6 +18,9 @@ jobs:
       - name: Build Documentation
         run: cargo doc --no-deps
 
+      - name: Create index.html to redirect
+        run: echo "<meta http-equiv=\"refresh\" content=\"0; url=rbfrt\">" > target/doc/index.html
+
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
