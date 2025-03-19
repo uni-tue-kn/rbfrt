@@ -8,4 +8,4 @@ It uses the official protobuf definitions of the [Intel Tofino](https://github.c
 
 The crate is at the moment in an alpha version.
 
-Documentation and usage instructions follow.
+Documentation can be generated with `cargo doc`.

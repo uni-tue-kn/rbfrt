@@ -16,6 +16,33 @@
 /*
  * Steffen Lindner (steffen.lindner@uni-tuebingen.de)
  */
-mod config_file;
 
-pub(crate) use config_file::Configuration;
+use crate::bfrt::{BFRTFieldType, TableMatchTypes};
+use serde::Deserialize;
+
+#[derive(Deserialize, Debug, Clone)]
+pub struct BFRTTableKeyObject {
+    id: u32,
+    name: String,
+    #[allow(dead_code)]
+    repeated: Option<bool>,
+    #[allow(dead_code)]
+    mandatory: bool,
+    #[allow(dead_code)]
+    match_type: TableMatchTypes,
+    r#type: BFRTFieldType,
+}
+
+impl BFRTTableKeyObject {
+    pub fn id(&self) -> u32 {
+        self.id
+    }
+
+    pub fn name(&self) -> &str {
+        &self.name
+    }
+
+    pub fn r#type(&self) -> &BFRTFieldType {
+        &self.r#type
+    }
+}

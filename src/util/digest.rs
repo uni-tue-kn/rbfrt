@@ -17,11 +17,18 @@
  * Steffen Lindner (steffen.lindner@uni-tuebingen.de)
  */
 
-use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 
+/// Represents a digest/message sent from the switch to the controller.
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct Digest {
+    /// Name of the [Digest] instance used in the P4 program.
     pub name: String,
-    pub data: HashMap<String, Vec<u8>>
+    /// The data contained in the [Digest].
+    /// It contains the mapping of the key and its value send with the `pack` method from the P4 program.
+    ///
+    /// Suppose the EtherType of an Ethernet header is included in the [Digest].
+    /// Then, the key contains the identifier used by the P4 program, e.g., `ether_type`, and the value contains its `bit<16>` value
+    pub data: HashMap<String, Vec<u8>>,
 }

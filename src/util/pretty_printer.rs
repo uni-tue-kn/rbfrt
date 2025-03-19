@@ -24,30 +24,65 @@ use std::collections::HashMap;
 
 use prettytable::{format, Row, Table};
 
+/// PrettyPrinter to display tables and their entries.
+///
+/// # Example
+///
+/// ```no_run
+/// use rbfrt::SwitchConnection;
+/// use rbfrt::table::Request;
+/// use rbfrt::util::PrettyPrinter;
+///
+/// #[tokio::main]
+/// async fn main() -> Result<(), Box<dyn std::error::Error>> {
+///     let switch = SwitchConnection::builder("localhost", 50052)
+///             .device_id(0)
+///             .client_id(1)
+///             .p4_name("my_p4_program")
+///             .connect()
+///             .await?;
+///
+///     let req = Request::new("ingress.pretty_table");
+///     let res = switch.get_table_entries(req).await?;
+///
+///     let pp = PrettyPrinter::new();
+///     pp.print_table(res)?;
+///
+///     Ok(())
+/// }
+/// ```
 pub struct PrettyPrinter {
     infer_address_type_flag: bool,
 }
 
-/// PrettyPrinter to display MATs and their entries.
-impl PrettyPrinter {
-
-    pub fn new() -> PrettyPrinter {
-        PrettyPrinter {
+impl Default for PrettyPrinter {
+    fn default() -> Self {
+        Self {
             infer_address_type_flag: true,
         }
     }
+}
 
-    /// Set the infer_address_type_flag
-    /// * `infer_address_type_flag` - The PrettyPrinter will try to infer MAC and IP addresses from column names
-    pub fn infer_address_type_flag(self, infer_address_type_flag: bool) -> PrettyPrinter {
-        PrettyPrinter {infer_address_type_flag}
+impl PrettyPrinter {
+    /// Creates a new `default` [PrettyPrinter]
+    pub fn new() -> PrettyPrinter {
+        Default::default()
     }
 
+    /// Sets the `infer_address_type_flag`.
+    /// If the `infer_address_type_flag` is set, the [PrettyPrinter] will try to infer MAC and IP addresses from column names.
+    pub fn infer_address_type_flag(self, infer_address_type_flag: bool) -> PrettyPrinter {
+        PrettyPrinter {
+            infer_address_type_flag,
+        }
+    }
+
+    /// Returns if the `infer_address_type_flag` is set.
     pub fn get_infer_address_type_flag(&self) -> bool {
         self.infer_address_type_flag
     }
 
-    /// Converts data in the form of &Vec<u8> into strings
+    /// Converts data in the form of `Vec<u8>` into `String`.
     /// Up to a length of 128 bytes, the bytearray is converted to a number
     /// If the get_infer_address_type_flag is set, this function will try to infer
     /// the address type (MAC and IPv4) from the column name and data length
@@ -69,23 +104,20 @@ impl PrettyPrinter {
         } 
         else if data.len() % 4 == 0 {
             address = format!("{:?}", data.to_int_arr());
-        }        
-        else {
+        } else {
             address = format!("{:?}", data);
         }
 
-        if self.get_infer_address_type_flag() {
-            if key.contains("addr") || key.contains("address") {
-                if data.len() == 6 {
-                    // possibly a mac address
-                    address = format!(
-                        "{:x}:{:x}:{:x}:{:x}:{:x}:{:x}",
-                        data[0], data[1], data[2], data[3], data[4], data[5]
-                    );
-                } else if data.len() == 4 {
-                    // possible an IPv4 adress
-                    address = format!("{}.{}.{}.{}", data[0], data[1], data[2], data[3]);
-                }
+        if self.get_infer_address_type_flag() && (key.contains("addr") || key.contains("address")) {
+            if data.len() == 6 {
+                // possibly a mac address
+                address = format!(
+                    "{:x}:{:x}:{:x}:{:x}:{:x}:{:x}",
+                    data[0], data[1], data[2], data[3], data[4], data[5]
+                );
+            } else if data.len() == 4 {
+                // possible an IPv4 adress
+                address = format!("{}.{}.{}.{}", data[0], data[1], data[2], data[3]);
             }
         }
 
@@ -105,29 +137,34 @@ impl PrettyPrinter {
         if !entries.is_empty() {
             let entry = &entries[0];
             let mut col_name: String;
-            for key in &entry.match_key {
+            for key in &entry.match_keys {
                 match key.1 {
-                    MatchValue::ExactValue { bytes: _} => {
+                    MatchValue::ExactValue { bytes: _ } => {
                         col_name = format!("EXT:{}", key.0);
                     }
-                    MatchValue::LPM { bytes: _, prefix_length: _} => {
+                    MatchValue::LPM {
+                        bytes: _,
+                        prefix_length: _,
+                    } => {
                         col_name = format!("LPM:{}", key.0);
                     }
-                    MatchValue::RangeValue { lower_bytes: _, higher_bytes: _} => {
+                    MatchValue::RangeValue {
+                        lower_bytes: _,
+                        higher_bytes: _,
+                    } => {
                         col_name = format!("RNG:{}", key.0);
                     }
-                    MatchValue::Ternary { value: _, mask : _} => {
+                    MatchValue::Ternary { value: _, mask: _ } => {
                         col_name = format!("TER:{}", key.0);
                     }
                 }
-                
+
                 header_row.insert(col_name);
             }
         }
 
         header_row
     }
-
 
     /// Creates a data row for a table. Requires the header row to be build first.
     ///
@@ -145,18 +182,16 @@ impl PrettyPrinter {
                 // Write action name into the col
                 let action_name = &entry.action;
                 row_entry.push(action_name.clone());
-            }
-            else if *col == "Action parameters" {
+            } else if *col == "Action parameters" {
                 let action_data_table = self.create_action_sub_table(entry);
                 row_entry.push(action_data_table);
-            }
-            else {
+            } else {
                 // Collect data for keys in MAT
                 let key_name = col.get(4..);
                 match key_name {
                     Some(key) => {
                         let values: Vec<&MatchValue> = entry
-                            .match_key
+                            .match_keys
                             .iter()
                             .filter(|entry| entry.0 == key)
                             .map(|entry| entry.1)
@@ -209,10 +244,10 @@ impl PrettyPrinter {
         let mut action_data_row: Vec<String> = vec![];
 
         for action_data in &entry.action_data {
-            action_data_header_row.push(action_data.get_name().to_string());
+            action_data_header_row.push(action_data.get_key().to_string());
 
             let action_data_str =
-                self.convert_data_to_string(action_data.get_name(), action_data.get_data());
+                self.convert_data_to_string(action_data.get_key(), action_data.get_data());
 
             action_data_row.push(action_data_str);
         }
@@ -221,38 +256,21 @@ impl PrettyPrinter {
             action_data_table.set_titles(Row::from(action_data_header_row));
             action_data_table.add_row(Row::from(action_data_row));
             action_data_table.to_string()
-        }
-        else {
+        } else {
             "-".to_string()
         }
     }
 
-    /// Prettyprint all given entries as tables.
+    /// Prettyprint all given `entries` as tables.
     /// Table entries need to be fetched from the switch first.
     /// Multiple tables will be printed if entries belong to different tables.
-    ///
-    /// # Attributes
-    /// * `entries` - All entries to print
-    ///
-    /// # Example
-    ///
-    /// ```
-    /// let tp = PrettyPrinter::new();
-    /// let req: table::Request = table::Request::new("ingress.pretty_table");
-    /// let res = switch.get_table_entry(req).await?
-    /// tp.print_table(res)?;
-    /// ```
     pub fn print_table(&self, entries: Vec<TableEntry>) -> Result<(), RBFRTError> {
-
         // entries might span different tables -> group them by table
         let mut grouped_tables: HashMap<String, Vec<TableEntry>> = HashMap::new();
 
         for entry in entries {
             let table_name = entry.table_name.clone();
-            grouped_tables
-                .entry(table_name)
-                .or_default()
-                .push(entry);
+            grouped_tables.entry(table_name).or_default().push(entry);
         }
 
         for (table_name, table_entries) in &grouped_tables {

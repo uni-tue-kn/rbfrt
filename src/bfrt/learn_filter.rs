@@ -16,9 +16,32 @@
 /*
  * Steffen Lindner (steffen.lindner@uni-tuebingen.de)
  */
-mod register;
 
-pub use register::Request;
-pub use register::Register;
-pub use register::IndexType;
-pub use register::RegisterEntry;
+use crate::error::RBFRTError;
+use crate::error::RBFRTError::UnknownLearnFilterField;
+use serde::Deserialize;
+
+#[derive(Deserialize, Debug, Clone)]
+pub struct LearnFilterObject {
+    pub name: String,
+    pub id: u32,
+    pub fields: Vec<LearnFilterField>,
+}
+
+#[derive(Deserialize, Debug, Clone)]
+pub struct LearnFilterField {
+    name: String,
+    id: u32,
+}
+
+impl LearnFilterObject {
+    pub fn get_data_field_name_by_id(&self, id: u32) -> Result<String, RBFRTError> {
+        for field in &self.fields {
+            if field.id == id {
+                return Ok(field.name.to_owned());
+            }
+        }
+
+        Err(UnknownLearnFilterField { field_id: id })
+    }
+}
