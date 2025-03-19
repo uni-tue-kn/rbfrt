@@ -96,9 +96,9 @@ impl PrettyPrinter {
         if data.len() <= 4 {
             address = ToString::to_string(&data.to_u32());
         } else if data.len() <= 8 {
-            address = data.to_u64().to_string();
+            address = ToString::to_string(&data.to_u64());
         } else if data.len() <= 16 {
-            address = data.to_u128().to_string();
+            address = ToString::to_string(&data.to_u128());
         } else if data.len() % 4 == 0 {
             address = format!("{:?}", data.to_int_arr());
         } else {
