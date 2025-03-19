@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":["Register","RegisterEntry","Request"],"type":["IndexType"]};

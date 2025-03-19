@@ -1,0 +1,36 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="This crate implements an interface to a P4-programmable switch that can be controlled through the BFRuntime Interface."><title>rbfrt - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../static.files/rustdoc-46132b98.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="rbfrt" data-themes="" data-resource-suffix="" data-rustdoc-version="1.85.1 (4eb161250 2025-03-15)" data-channel="1.85.1" data-search-js="search-75f5ac3e.js" data-settings-js="settings-0f613d39.js" ><script src="../static.files/storage-59e33391.js"></script><script defer src="../crates.js"></script><script defer src="../static.files/main-5f194d8c.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-893ab5e7.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-044be391.svg"></head><body class="rustdoc mod crate"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../rbfrt/index.html">rbfrt</a><span class="version">0.1.5-alpha</span></h2></div><div class="sidebar-elems"><ul class="block"><li><a id="all-types" href="all.html">All Items</a></li></ul><section id="rustdoc-toc"><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#example" title="Example">Example</a></li></ul><h3><a href="#modules">Crate Items</a></h3><ul class="block"><li><a href="#modules" title="Modules">Modules</a></li><li><a href="#structs" title="Structs">Structs</a></li></ul></section><div id="rustdoc-modnav"></div></div></nav><div class="sidebar-resizer"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1>Crate <span>rbfrt</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../src/rbfrt/lib.rs.html#20-1002">Source</a> </span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>This crate implements an interface to a P4-programmable switch that can be controlled through the BFRuntime Interface.</p>
+<h2 id="example"><a class="doc-anchor" href="#example">§</a>Example</h2>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>rbfrt::{SwitchConnection, table};
+<span class="kw">use </span>rbfrt::table::{MatchValue, Request};
+
+<span class="attr">#[tokio::main]
+</span><span class="kw">async fn </span>main() -&gt; <span class="prelude-ty">Result</span>&lt;(), Box&lt;<span class="kw">dyn </span>std::error::Error&gt;&gt; {
+    <span class="kw">let </span>switch = SwitchConnection::builder(<span class="string">"localhost"</span>, <span class="number">50052</span>)
+        .device_id(<span class="number">0</span>)
+        .client_id(<span class="number">1</span>)
+        .p4_name(<span class="string">"my_p4_program"</span>)
+        .connect()
+        .<span class="kw">await</span><span class="question-mark">?</span>;
+
+
+    <span class="kw">let </span>requests = <span class="macro">vec!</span>[
+        Request::new(<span class="string">"ingress.p4tg.frame_type.frame_type_monitor"</span>)
+            .match_key(<span class="string">"hdr.ipv4.dst_addr"</span>, MatchValue::lpm(<span class="macro">vec!</span>[<span class="number">10u8</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">2</span>], <span class="number">32</span>))
+            .match_key(<span class="string">"ig_intr_md.ingress_port"</span>, MatchValue::exact(<span class="number">0</span>)),
+        Request::new(<span class="string">"ingress.p4tg.tg_forward"</span>)
+            .match_key(<span class="string">"ig_intr_md.ingress_port"</span>, MatchValue::exact(<span class="number">10</span>))
+            .match_key(<span class="string">"ig_md.rand_value"</span>, MatchValue::range(<span class="number">20</span>, <span class="number">30</span>))
+            .match_key(<span class="string">"hdr.pkt_gen.app_id"</span>, MatchValue::exact(<span class="number">5</span>))
+        ];
+
+    <span class="kw">for </span>req <span class="kw">in </span>requests {
+        <span class="kw">let </span>entries = switch.get_table_entries(req).<span class="kw">await</span><span class="question-mark">?</span>;
+
+        <span class="kw">for </span>e <span class="kw">in </span>entries {
+            <span class="macro">println!</span>(<span class="string">"{:?}"</span>, e);
+        }
+    }
+
+    <span class="prelude-val">Ok</span>(())
+}</code></pre></div>
+</div></details><h2 id="modules" class="section-header">Modules<a href="#modules" class="anchor">§</a></h2><ul class="item-table"><li><div class="item-name"><a class="mod" href="error/index.html" title="mod rbfrt::error">error</a></div></li><li><div class="item-name"><a class="mod" href="register/index.html" title="mod rbfrt::register">register</a></div></li><li><div class="item-name"><a class="mod" href="table/index.html" title="mod rbfrt::table">table</a></div></li><li><div class="item-name"><a class="mod" href="util/index.html" title="mod rbfrt::util">util</a></div></li></ul><h2 id="structs" class="section-header">Structs<a href="#structs" class="anchor">§</a></h2><ul class="item-table"><li><div class="item-name"><a class="struct" href="struct.SwitchConnection.html" title="struct rbfrt::SwitchConnection">Switch<wbr>Connection</a></div><div class="desc docblock-short">Represents the connection between the switch and the controller.</div></li><li><div class="item-name"><a class="struct" href="struct.SwitchConnectionBuilder.html" title="struct rbfrt::SwitchConnectionBuilder">Switch<wbr>Connection<wbr>Builder</a></div><div class="desc docblock-short">A builder to create the <a href="struct.SwitchConnection.html" title="struct rbfrt::SwitchConnection">SwitchConnection</a> between the switch and the controller.</div></li></ul></section></div></main></body></html>

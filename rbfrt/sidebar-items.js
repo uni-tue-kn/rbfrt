@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"mod":["error","register","table","util"],"struct":["SwitchConnection","SwitchConnectionBuilder"]};
