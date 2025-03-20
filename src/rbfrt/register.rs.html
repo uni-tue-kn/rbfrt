@@ -220,7 +220,7 @@
         }
     }
 
-    <span class="doccomment">/// Returns the `name of the register
+    <span class="doccomment">/// Returns the `name` of the register
     </span><span class="kw">pub fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
         <span class="kw-2">&amp;</span><span class="self">self</span>.name
     }
@@ -235,7 +235,7 @@
         <span class="self">self</span>.entries.get(<span class="kw-2">&amp;</span>index)
     }
 
-    <span class="doccomment">/// Parse [TableEntries](TableEntry) into [RegisterEntryies](RegisterEntry) and creates a [Register] containing these entries.
+    <span class="doccomment">/// Parse [TableEntries](TableEntry) into [RegisterEntries](RegisterEntry) and creates a [Register] containing these entries.
     </span><span class="kw">pub fn </span>parse_register_entries(entries: Vec&lt;TableEntry&gt;, name: <span class="kw-2">&amp;</span>str) -&gt; Register {
         <span class="comment">// convert regular table entry to register entry
         </span><span class="kw">let </span><span class="kw-2">mut </span>register_entries: HashMap&lt;IndexType, RegisterEntry&gt; = HashMap::new();
