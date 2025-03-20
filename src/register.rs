@@ -44,7 +44,7 @@ impl Register {
         }
     }
 
-    /// Returns the `name of the register
+    /// Returns the `name` of the register
     pub fn name(&self) -> &str {
         &self.name
     }
@@ -59,7 +59,7 @@ impl Register {
         self.entries.get(&index)
     }
 
-    /// Parse [TableEntries](TableEntry) into [RegisterEntryies](RegisterEntry) and creates a [Register] containing these entries.
+    /// Parse [TableEntries](TableEntry) into [RegisterEntries](RegisterEntry) and creates a [Register] containing these entries.
     pub fn parse_register_entries(entries: Vec<TableEntry>, name: &str) -> Register {
         // convert regular table entry to register entry
         let mut register_entries: HashMap<IndexType, RegisterEntry> = HashMap::new();
