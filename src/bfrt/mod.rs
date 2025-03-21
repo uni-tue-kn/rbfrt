@@ -16,34 +16,28 @@
 /*
  * Steffen Lindner (steffen.lindner@uni-tuebingen.de)
  */
+mod info;
+pub use info::BFRTInfo;
+pub(crate) use info::Convert;
 
-use serde::Deserialize;
-use crate::error::RBFRTError;
-use crate::error::RBFRTError::UnknownLearnFilterField;
+mod table_object;
+pub use table_object::BFRTTableObject;
 
-#[derive(Deserialize, Debug, Clone)]
-pub struct LearnFilterObject {
-    pub name: String,
-    pub id: u32,
-    pub fields: Vec<LearnFilterField>
-}
+mod action;
+mod table_key_object;
+mod types;
+pub use table_key_object::BFRTTableKeyObject;
 
-#[derive(Deserialize, Debug, Clone)]
-pub struct LearnFilterField {
-    name: String,
-    id: u32,
-}
+mod data;
+mod learn_filter;
 
-impl LearnFilterObject {
-    pub fn get_data_field_name_by_id(&self, id: u32) -> Result<String, RBFRTError> {
-        for field in &self.fields {
-            if field.id == id {
-                return Ok(field.name.to_owned());
-            }
-        }
+pub use learn_filter::LearnFilterObject;
 
-        Err(UnknownLearnFilterField {field_id: id})
+pub use data::BFRTData;
+pub use data::BFRTSingleton;
 
-    }
-}
+pub use types::BFRTFieldType;
+pub use types::TableMatchTypes;
+pub use types::TableType;
 
+pub use action::BFRTAction;

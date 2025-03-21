@@ -19,7 +19,7 @@
 
 use serde::Deserialize;
 
-use crate::bfrt_info::{BFRTTableObject, LearnFilterObject};
+use crate::bfrt::{BFRTTableObject, LearnFilterObject};
 use crate::error::RBFRTError;
 use crate::error::RBFRTError::{ConvertError, UnknownLearnFilter, UnknownTable, UnknownTableId};
 
@@ -27,7 +27,7 @@ use crate::error::RBFRTError::{ConvertError, UnknownLearnFilter, UnknownTable, U
 #[derive(Deserialize, Debug, Clone)]
 pub struct BFRTInfo {
     tables: Vec<BFRTTableObject>,
-    learn_filters: Option<Vec<LearnFilterObject>>
+    learn_filters: Option<Vec<LearnFilterObject>>,
 }
 
 impl BFRTInfo {
@@ -38,7 +38,9 @@ impl BFRTInfo {
             }
         }
 
-        Err(UnknownTable { table_name: name.to_owned()})
+        Err(UnknownTable {
+            table_name: name.to_owned(),
+        })
     }
 
     pub fn table_get_by_id(&self, id: u32) -> Result<&BFRTTableObject, RBFRTError> {
@@ -48,9 +50,8 @@ impl BFRTInfo {
             }
         }
 
-        Err(UnknownTableId { table_id: id})
+        Err(UnknownTableId { table_id: id })
     }
-
 
     pub fn tables(self) -> Vec<BFRTTableObject> {
         self.tables
@@ -62,7 +63,7 @@ impl BFRTInfo {
 
     pub fn learn_filter_get(&self, id: u32) -> Result<&LearnFilterObject, RBFRTError> {
         if self.learn_filters.is_none() {
-            return Err(UnknownLearnFilter {filter_id: id});
+            return Err(UnknownLearnFilter { filter_id: id });
         }
 
         for l in self.learn_filters.as_ref().unwrap() {
@@ -71,8 +72,7 @@ impl BFRTInfo {
             }
         }
 
-        Err(UnknownLearnFilter {filter_id: id})
-
+        Err(UnknownLearnFilter { filter_id: id })
     }
 }
 
@@ -121,10 +121,3 @@ impl Convert for Vec<u8> {
         Ok(ret)
     }
 }
-
-
-
-
-
-
-

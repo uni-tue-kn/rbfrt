@@ -18,44 +18,32 @@
  */
 
 use serde::Deserialize;
-use crate::bfrt_info::BFRTFieldType;
-
-#[derive(Deserialize, Debug, Clone)]
-pub struct BFRTData {
-    #[allow(dead_code)]
-    mandatory: bool,
-    #[allow(dead_code)]
-    read_only: bool,
-    singleton: BFRTSingleton,
+#[derive(Deserialize, Debug)]
+pub(crate) struct Configuration {
+    pub(crate) p4_devices: Vec<DeviceConfig>,
 }
 
-impl BFRTData {
-    pub fn singleton(&self) -> &BFRTSingleton {
-        &self.singleton
-    }
-}
-
-#[derive(Deserialize, Debug, Clone)]
-pub struct BFRTSingleton {
-    id: u32,
-    name: String,
-    r#type: Option<BFRTFieldType>,
+#[derive(Deserialize, Debug)]
+pub(crate) struct DeviceConfig {
+    #[serde(alias = "device-id")]
     #[allow(dead_code)]
-    repeated: Option<bool>
+    pub(crate) device_id: u32,
+    pub(crate) p4_programs: Vec<P4Program>,
 }
 
+#[derive(Deserialize, Debug)]
+pub(crate) struct P4Program {
+    #[serde(alias = "program-name")]
+    pub(crate) program_name: String,
+    #[serde(alias = "bfrt-config")]
+    pub(crate) bfrt_config: String,
+    pub(crate) p4_pipelines: Vec<P4Pipeline>,
+}
 
-impl BFRTSingleton {
-    pub fn id(&self) -> u32 {
-        self.id
-    }
-
-    pub fn name(&self) -> &str {
-        &self.name
-    }
-    
-    pub fn get_type(&self) -> &Option<BFRTFieldType> {
-        &self.r#type
-    }
-
+#[derive(Deserialize, Debug)]
+pub(crate) struct P4Pipeline {
+    pub(crate) p4_pipeline_name: String,
+    pub(crate) context: String,
+    pub(crate) config: String,
+    pub(crate) pipe_scope: Vec<u32>,
 }

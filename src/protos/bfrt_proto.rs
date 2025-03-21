@@ -3,16 +3,16 @@
 pub struct WriteRequest {
     /// This is the default TargetDevice.
     /// If entry_tgt under TableEntry is specified, that takes precedence over this field
-    #[prost(message, optional, tag="1")]
+    #[prost(message, optional, tag = "1")]
     pub target: ::core::option::Option<TargetDevice>,
-    #[prost(uint32, tag="2")]
+    #[prost(uint32, tag = "2")]
     pub client_id: u32,
     /// The write batch, comprising a list of Update operations.
-    #[prost(message, repeated, tag="3")]
+    #[prost(message, repeated, tag = "3")]
     pub updates: ::prost::alloc::vec::Vec<Update>,
-    #[prost(enumeration="write_request::Atomicity", tag="4")]
+    #[prost(enumeration = "write_request::Atomicity", tag = "4")]
     pub atomicity: i32,
-    #[prost(string, tag="5")]
+    #[prost(string, tag = "5")]
     pub p4_name: ::prost::alloc::string::String,
 }
 /// Nested message and enum types in `WriteRequest`.
@@ -60,46 +60,46 @@ pub mod write_request {
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct WriteResponse {
-    #[prost(message, repeated, tag="1")]
+    #[prost(message, repeated, tag = "1")]
     pub status: ::prost::alloc::vec::Vec<Error>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ReadRequest {
     /// This is the default TargetDevice.
     /// If entry_tgt under TableEntry is specified, that takes precedence over this field
-    #[prost(message, optional, tag="1")]
+    #[prost(message, optional, tag = "1")]
     pub target: ::core::option::Option<TargetDevice>,
-    #[prost(uint32, tag="2")]
+    #[prost(uint32, tag = "2")]
     pub client_id: u32,
-    #[prost(message, repeated, tag="3")]
+    #[prost(message, repeated, tag = "3")]
     pub entities: ::prost::alloc::vec::Vec<Entity>,
-    #[prost(string, tag="4")]
+    #[prost(string, tag = "4")]
     pub p4_name: ::prost::alloc::string::String,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ReadResponse {
-    #[prost(message, repeated, tag="1")]
+    #[prost(message, repeated, tag = "1")]
     pub entities: ::prost::alloc::vec::Vec<Entity>,
-    #[prost(message, repeated, tag="2")]
+    #[prost(message, repeated, tag = "2")]
     pub status: ::prost::alloc::vec::Vec<Error>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct TargetDevice {
-    #[prost(uint32, tag="1")]
+    #[prost(uint32, tag = "1")]
     pub device_id: u32,
-    #[prost(uint32, tag="2")]
+    #[prost(uint32, tag = "2")]
     pub pipe_id: u32,
-    #[prost(uint32, tag="3")]
+    #[prost(uint32, tag = "3")]
     pub direction: u32,
     /// More target-specific ids.
-    #[prost(uint32, tag="4")]
+    #[prost(uint32, tag = "4")]
     pub prsr_id: u32,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Update {
-    #[prost(enumeration="update::Type", tag="1")]
+    #[prost(enumeration = "update::Type", tag = "1")]
     pub r#type: i32,
-    #[prost(message, optional, tag="2")]
+    #[prost(message, optional, tag = "2")]
     pub entity: ::core::option::Option<Entity>,
 }
 /// Nested message and enum types in `Update`.
@@ -133,169 +133,169 @@ pub mod update {
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Entity {
-    #[prost(oneof="entity::Entity", tags="1, 2, 3, 4, 5, 6")]
+    #[prost(oneof = "entity::Entity", tags = "1, 2, 3, 4, 5, 6")]
     pub entity: ::core::option::Option<entity::Entity>,
 }
 /// Nested message and enum types in `Entity`.
 pub mod entity {
     #[derive(Clone, PartialEq, ::prost::Oneof)]
     pub enum Entity {
-        #[prost(message, tag="1")]
+        #[prost(message, tag = "1")]
         TableEntry(super::TableEntry),
-        #[prost(message, tag="2")]
+        #[prost(message, tag = "2")]
         TableUsage(super::TableUsage),
-        #[prost(message, tag="3")]
+        #[prost(message, tag = "3")]
         TableAttribute(super::TableAttribute),
-        #[prost(message, tag="4")]
+        #[prost(message, tag = "4")]
         TableOperation(super::TableOperation),
-        #[prost(message, tag="5")]
+        #[prost(message, tag = "5")]
         ObjectId(super::ObjectId),
-        #[prost(message, tag="6")]
+        #[prost(message, tag = "6")]
         Handle(super::HandleId),
     }
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct HandleId {
-    #[prost(uint32, tag="1")]
+    #[prost(uint32, tag = "1")]
     pub table_id: u32,
-    #[prost(oneof="handle_id::Value", tags="2, 3")]
+    #[prost(oneof = "handle_id::Value", tags = "2, 3")]
     pub value: ::core::option::Option<handle_id::Value>,
 }
 /// Nested message and enum types in `HandleId`.
 pub mod handle_id {
     #[derive(Clone, PartialEq, ::prost::Oneof)]
     pub enum Value {
-        #[prost(message, tag="2")]
+        #[prost(message, tag = "2")]
         Key(super::TableKey),
-        #[prost(uint32, tag="3")]
+        #[prost(uint32, tag = "3")]
         HandleId(u32),
     }
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct TableEntry {
-    #[prost(uint32, tag="1")]
+    #[prost(uint32, tag = "1")]
     pub table_id: u32,
-    #[prost(message, optional, tag="3")]
+    #[prost(message, optional, tag = "3")]
     pub data: ::core::option::Option<TableData>,
-    #[prost(bool, tag="4")]
+    #[prost(bool, tag = "4")]
     pub is_default_entry: bool,
     /// Deprecated, please use table_flags
     #[deprecated]
-    #[prost(message, optional, tag="5")]
+    #[prost(message, optional, tag = "5")]
     pub table_read_flag: ::core::option::Option<TableReadFlag>,
     #[deprecated]
-    #[prost(message, optional, tag="6")]
+    #[prost(message, optional, tag = "6")]
     pub table_mod_inc_flag: ::core::option::Option<TableModIncFlag>,
     /// If entry_tgt is specified, all the fields of entry_tgt are used even if not explicitly set
-    #[prost(message, optional, tag="8")]
+    #[prost(message, optional, tag = "8")]
     pub entry_tgt: ::core::option::Option<TargetDevice>,
-    #[prost(message, optional, tag="9")]
+    #[prost(message, optional, tag = "9")]
     pub table_flags: ::core::option::Option<TableFlags>,
-    #[prost(oneof="table_entry::Value", tags="2, 7")]
+    #[prost(oneof = "table_entry::Value", tags = "2, 7")]
     pub value: ::core::option::Option<table_entry::Value>,
 }
 /// Nested message and enum types in `TableEntry`.
 pub mod table_entry {
     #[derive(Clone, PartialEq, ::prost::Oneof)]
     pub enum Value {
-        #[prost(message, tag="2")]
+        #[prost(message, tag = "2")]
         Key(super::TableKey),
-        #[prost(uint32, tag="7")]
+        #[prost(uint32, tag = "7")]
         HandleId(u32),
     }
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct TableUsage {
-    #[prost(uint32, tag="1")]
+    #[prost(uint32, tag = "1")]
     pub table_id: u32,
-    #[prost(uint32, tag="2")]
+    #[prost(uint32, tag = "2")]
     pub usage: u32,
     /// Deprecated, please use table_flags
     #[deprecated]
-    #[prost(message, optional, tag="3")]
+    #[prost(message, optional, tag = "3")]
     pub table_read_flag: ::core::option::Option<TableReadFlag>,
-    #[prost(message, optional, tag="4")]
+    #[prost(message, optional, tag = "4")]
     pub table_flags: ::core::option::Option<TableFlags>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct TableAttribute {
-    #[prost(uint32, tag="1")]
+    #[prost(uint32, tag = "1")]
     pub table_id: u32,
-    #[prost(oneof="table_attribute::Attribute", tags="2, 3, 4, 5, 6, 7, 8, 9")]
+    #[prost(oneof = "table_attribute::Attribute", tags = "2, 3, 4, 5, 6, 7, 8, 9")]
     pub attribute: ::core::option::Option<table_attribute::Attribute>,
 }
 /// Nested message and enum types in `TableAttribute`.
 pub mod table_attribute {
     #[derive(Clone, PartialEq, ::prost::Oneof)]
     pub enum Attribute {
-        #[prost(message, tag="2")]
+        #[prost(message, tag = "2")]
         IdleTable(super::IdleTable),
-        #[prost(message, tag="3")]
+        #[prost(message, tag = "3")]
         EntryScope(super::EntryScope),
-        #[prost(message, tag="4")]
+        #[prost(message, tag = "4")]
         DynKeyMask(super::DynKeyMask),
-        #[prost(message, tag="5")]
+        #[prost(message, tag = "5")]
         DynHashing(super::DynHashing),
-        #[prost(message, tag="6")]
+        #[prost(message, tag = "6")]
         ByteCountAdj(super::ByteCountAdj),
-        #[prost(message, tag="7")]
+        #[prost(message, tag = "7")]
         PortStatusNotify(super::PortStatusChg),
-        #[prost(message, tag="8")]
+        #[prost(message, tag = "8")]
         IntvlMs(super::StatePullIntvl),
-        #[prost(message, tag="9")]
+        #[prost(message, tag = "9")]
         PreDeviceConfig(super::PreDeviceConfig),
     }
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct TableOperation {
-    #[prost(uint32, tag="1")]
+    #[prost(uint32, tag = "1")]
     pub table_id: u32,
-    #[prost(string, tag="2")]
+    #[prost(string, tag = "2")]
     pub table_operations_type: ::prost::alloc::string::String,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct TableData {
-    #[prost(uint32, tag="1")]
+    #[prost(uint32, tag = "1")]
     pub action_id: u32,
-    #[prost(message, repeated, tag="2")]
+    #[prost(message, repeated, tag = "2")]
     pub fields: ::prost::alloc::vec::Vec<DataField>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct DataField {
-    #[prost(uint32, tag="1")]
+    #[prost(uint32, tag = "1")]
     pub field_id: u32,
     /// All data fields are dealt with using a byte stream except for float
     /// values. Float values are used for data fields for LPF and WRED table
-    #[prost(oneof="data_field::Value", tags="2, 3, 4, 5, 6, 7, 8, 9")]
+    #[prost(oneof = "data_field::Value", tags = "2, 3, 4, 5, 6, 7, 8, 9")]
     pub value: ::core::option::Option<data_field::Value>,
 }
 /// Nested message and enum types in `DataField`.
 pub mod data_field {
     #[derive(Clone, PartialEq, ::prost::Message)]
     pub struct IntArray {
-        #[prost(uint32, repeated, tag="1")]
+        #[prost(uint32, repeated, tag = "1")]
         pub val: ::prost::alloc::vec::Vec<u32>,
     }
     #[derive(Clone, PartialEq, ::prost::Message)]
     pub struct BoolArray {
-        #[prost(bool, repeated, tag="1")]
+        #[prost(bool, repeated, tag = "1")]
         pub val: ::prost::alloc::vec::Vec<bool>,
     }
     #[derive(Clone, PartialEq, ::prost::Message)]
     pub struct StrArray {
-        #[prost(string, repeated, tag="1")]
+        #[prost(string, repeated, tag = "1")]
         pub val: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
     }
     #[derive(Clone, PartialEq, ::prost::Message)]
     pub struct ContainerArray {
-        #[prost(message, repeated, tag="1")]
+        #[prost(message, repeated, tag = "1")]
         pub container: ::prost::alloc::vec::Vec<container_array::Container>,
     }
     /// Nested message and enum types in `ContainerArray`.
     pub mod container_array {
         #[derive(Clone, PartialEq, ::prost::Message)]
         pub struct Container {
-            #[prost(message, repeated, tag="1")]
+            #[prost(message, repeated, tag = "1")]
             pub val: ::prost::alloc::vec::Vec<super::super::DataField>,
         }
     }
@@ -303,34 +303,34 @@ pub mod data_field {
     /// values. Float values are used for data fields for LPF and WRED table
     #[derive(Clone, PartialEq, ::prost::Oneof)]
     pub enum Value {
-        #[prost(bytes, tag="2")]
+        #[prost(bytes, tag = "2")]
         Stream(::prost::alloc::vec::Vec<u8>),
-        #[prost(float, tag="3")]
+        #[prost(float, tag = "3")]
         FloatVal(f32),
-        #[prost(string, tag="4")]
+        #[prost(string, tag = "4")]
         StrVal(::prost::alloc::string::String),
-        #[prost(message, tag="5")]
+        #[prost(message, tag = "5")]
         IntArrVal(IntArray),
-        #[prost(message, tag="6")]
+        #[prost(message, tag = "6")]
         BoolArrVal(BoolArray),
-        #[prost(message, tag="7")]
+        #[prost(message, tag = "7")]
         ContainerArrVal(ContainerArray),
-        #[prost(bool, tag="8")]
+        #[prost(bool, tag = "8")]
         BoolVal(bool),
-        #[prost(message, tag="9")]
+        #[prost(message, tag = "9")]
         StrArrVal(StrArray),
     }
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct TableKey {
-    #[prost(message, repeated, tag="1")]
+    #[prost(message, repeated, tag = "1")]
     pub fields: ::prost::alloc::vec::Vec<KeyField>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct KeyField {
-    #[prost(uint32, tag="1")]
+    #[prost(uint32, tag = "1")]
     pub field_id: u32,
-    #[prost(oneof="key_field::MatchType", tags="2, 3, 4, 5, 6")]
+    #[prost(oneof = "key_field::MatchType", tags = "2, 3, 4, 5, 6")]
     pub match_type: ::core::option::Option<key_field::MatchType>,
 }
 /// Nested message and enum types in `KeyField`.
@@ -339,77 +339,77 @@ pub mod key_field {
     /// 'bytes' is used to model arbitrarily-large values.
     #[derive(Clone, PartialEq, ::prost::Message)]
     pub struct Exact {
-        #[prost(bytes="vec", tag="1")]
+        #[prost(bytes = "vec", tag = "1")]
         pub value: ::prost::alloc::vec::Vec<u8>,
     }
     #[derive(Clone, PartialEq, ::prost::Message)]
     pub struct Ternary {
-        #[prost(bytes="vec", tag="1")]
+        #[prost(bytes = "vec", tag = "1")]
         pub value: ::prost::alloc::vec::Vec<u8>,
-        #[prost(bytes="vec", tag="2")]
+        #[prost(bytes = "vec", tag = "2")]
         pub mask: ::prost::alloc::vec::Vec<u8>,
     }
     #[derive(Clone, PartialEq, ::prost::Message)]
     pub struct Lpm {
-        #[prost(bytes="vec", tag="1")]
+        #[prost(bytes = "vec", tag = "1")]
         pub value: ::prost::alloc::vec::Vec<u8>,
         /// in bits
-        #[prost(int32, tag="2")]
+        #[prost(int32, tag = "2")]
         pub prefix_len: i32,
     }
     /// A Range is logically a set that contains all values numerically between
     /// 'low' and 'high' inclusively.
     #[derive(Clone, PartialEq, ::prost::Message)]
     pub struct Range {
-        #[prost(bytes="vec", tag="1")]
+        #[prost(bytes = "vec", tag = "1")]
         pub low: ::prost::alloc::vec::Vec<u8>,
-        #[prost(bytes="vec", tag="2")]
+        #[prost(bytes = "vec", tag = "2")]
         pub high: ::prost::alloc::vec::Vec<u8>,
     }
     #[derive(Clone, PartialEq, ::prost::Message)]
     pub struct Optional {
-        #[prost(bytes="vec", tag="1")]
+        #[prost(bytes = "vec", tag = "1")]
         pub value: ::prost::alloc::vec::Vec<u8>,
-        #[prost(bool, tag="2")]
+        #[prost(bool, tag = "2")]
         pub is_valid: bool,
     }
     #[derive(Clone, PartialEq, ::prost::Oneof)]
     pub enum MatchType {
-        #[prost(message, tag="2")]
+        #[prost(message, tag = "2")]
         Exact(Exact),
-        #[prost(message, tag="3")]
+        #[prost(message, tag = "3")]
         Ternary(Ternary),
-        #[prost(message, tag="4")]
+        #[prost(message, tag = "4")]
         Lpm(Lpm),
-        #[prost(message, tag="5")]
+        #[prost(message, tag = "5")]
         Range(Range),
-        #[prost(message, tag="6")]
+        #[prost(message, tag = "6")]
         Optional(Optional),
     }
 }
 /// Deprecated, please use TableFlags
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct TableReadFlag {
-    #[prost(bool, tag="1")]
+    #[prost(bool, tag = "1")]
     pub from_hw: bool,
-    #[prost(bool, tag="2")]
+    #[prost(bool, tag = "2")]
     pub key_only: bool,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct TableFlags {
-    #[prost(bool, tag="1")]
+    #[prost(bool, tag = "1")]
     pub from_hw: bool,
-    #[prost(bool, tag="2")]
+    #[prost(bool, tag = "2")]
     pub key_only: bool,
-    #[prost(bool, tag="3")]
+    #[prost(bool, tag = "3")]
     pub mod_del: bool,
-    #[prost(bool, tag="4")]
+    #[prost(bool, tag = "4")]
     pub reset_ttl: bool,
 }
 /// Deprecated, please use TableFlags
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct TableModIncFlag {
-    #[prost(enumeration="table_mod_inc_flag::Type", tag="1")]
+    #[prost(enumeration = "table_mod_inc_flag::Type", tag = "1")]
     pub r#type: i32,
 }
 /// Nested message and enum types in `TableModIncFlag`.
@@ -439,39 +439,39 @@ pub mod table_mod_inc_flag {
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct KeyFieldMask {
-    #[prost(uint32, tag="1")]
+    #[prost(uint32, tag = "1")]
     pub field_id: u32,
-    #[prost(bytes="vec", tag="2")]
+    #[prost(bytes = "vec", tag = "2")]
     pub mask: ::prost::alloc::vec::Vec<u8>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct DynKeyMask {
-    #[prost(message, repeated, tag="1")]
+    #[prost(message, repeated, tag = "1")]
     pub fields: ::prost::alloc::vec::Vec<KeyFieldMask>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct DynHashing {
-    #[prost(uint32, tag="1")]
+    #[prost(uint32, tag = "1")]
     pub alg: u32,
-    #[prost(uint64, tag="2")]
+    #[prost(uint64, tag = "2")]
     pub seed: u64,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ByteCountAdj {
-    #[prost(int32, tag="1")]
+    #[prost(int32, tag = "1")]
     pub byte_count_adjust: i32,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct IdleTable {
-    #[prost(uint32, tag="1")]
+    #[prost(uint32, tag = "1")]
     pub ttl_query_interval: u32,
-    #[prost(uint32, tag="2")]
+    #[prost(uint32, tag = "2")]
     pub max_ttl: u32,
-    #[prost(uint32, tag="3")]
+    #[prost(uint32, tag = "3")]
     pub min_ttl: u32,
-    #[prost(enumeration="idle_table::IdleTableMode", tag="4")]
+    #[prost(enumeration = "idle_table::IdleTableMode", tag = "4")]
     pub idle_table_mode: i32,
-    #[prost(bool, tag="5")]
+    #[prost(bool, tag = "5")]
     pub enable: bool,
 }
 /// Nested message and enum types in `IdleTable`.
@@ -497,19 +497,19 @@ pub mod idle_table {
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct StatePullIntvl {
-    #[prost(uint32, tag="1")]
+    #[prost(uint32, tag = "1")]
     pub intvl_val: u32,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct PortStatusChg {
-    #[prost(bool, tag="1")]
+    #[prost(bool, tag = "1")]
     pub enable: bool,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Mode {
-    #[prost(uint32, tag="3")]
+    #[prost(uint32, tag = "3")]
     pub args: u32,
-    #[prost(oneof="mode::Scope", tags="1, 2")]
+    #[prost(oneof = "mode::Scope", tags = "1, 2")]
     pub scope: ::core::option::Option<mode::Scope>,
 }
 /// Nested message and enum types in `Mode`.
@@ -534,158 +534,158 @@ pub mod mode {
     }
     #[derive(Clone, PartialEq, ::prost::Oneof)]
     pub enum Scope {
-        #[prost(enumeration="PredefinedMode", tag="1")]
+        #[prost(enumeration = "PredefinedMode", tag = "1")]
         Predef(i32),
-        #[prost(uint32, tag="2")]
+        #[prost(uint32, tag = "2")]
         UserDefined(u32),
     }
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct PreGlobalRid {
-    #[prost(uint32, tag="1")]
+    #[prost(uint32, tag = "1")]
     pub global_rid: u32,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct PrePortProtection {
-    #[prost(bool, tag="1")]
+    #[prost(bool, tag = "1")]
     pub enable: bool,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct PreFastFailover {
-    #[prost(bool, tag="1")]
+    #[prost(bool, tag = "1")]
     pub enable: bool,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct PreMaxNodesBeforeYield {
-    #[prost(uint32, tag="1")]
+    #[prost(uint32, tag = "1")]
     pub count: u32,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct PreMaxNodeThreshold {
-    #[prost(uint32, tag="1")]
+    #[prost(uint32, tag = "1")]
     pub node_count: u32,
-    #[prost(uint32, tag="2")]
+    #[prost(uint32, tag = "2")]
     pub port_lag_count: u32,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct PreDeviceConfig {
-    #[prost(message, optional, tag="1")]
+    #[prost(message, optional, tag = "1")]
     pub pre_global_rid: ::core::option::Option<PreGlobalRid>,
-    #[prost(message, optional, tag="2")]
+    #[prost(message, optional, tag = "2")]
     pub pre_port_protection: ::core::option::Option<PrePortProtection>,
-    #[prost(message, optional, tag="3")]
+    #[prost(message, optional, tag = "3")]
     pub pre_fast_failover: ::core::option::Option<PreFastFailover>,
-    #[prost(message, optional, tag="4")]
+    #[prost(message, optional, tag = "4")]
     pub pre_max_nodes_before_yield: ::core::option::Option<PreMaxNodesBeforeYield>,
-    #[prost(message, optional, tag="5")]
+    #[prost(message, optional, tag = "5")]
     pub pre_max_node_threshold: ::core::option::Option<PreMaxNodeThreshold>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct EntryScope {
-    #[prost(message, optional, tag="1")]
+    #[prost(message, optional, tag = "1")]
     pub gress_scope: ::core::option::Option<Mode>,
-    #[prost(message, optional, tag="2")]
+    #[prost(message, optional, tag = "2")]
     pub pipe_scope: ::core::option::Option<Mode>,
-    #[prost(message, optional, tag="3")]
+    #[prost(message, optional, tag = "3")]
     pub prsr_scope: ::core::option::Option<Mode>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ObjectId {
-    #[prost(uint32, tag="3")]
+    #[prost(uint32, tag = "3")]
     pub id: u32,
-    #[prost(oneof="object_id::Object", tags="1, 2")]
+    #[prost(oneof = "object_id::Object", tags = "1, 2")]
     pub object: ::core::option::Option<object_id::Object>,
 }
 /// Nested message and enum types in `ObjectId`.
 pub mod object_id {
     #[derive(Clone, PartialEq, ::prost::Message)]
     pub struct ActionName {
-        #[prost(string, tag="1")]
+        #[prost(string, tag = "1")]
         pub action: ::prost::alloc::string::String,
     }
     #[derive(Clone, PartialEq, ::prost::Message)]
     pub struct KeyFieldName {
-        #[prost(string, tag="1")]
+        #[prost(string, tag = "1")]
         pub field: ::prost::alloc::string::String,
     }
     #[derive(Clone, PartialEq, ::prost::Message)]
     pub struct DataFieldName {
-        #[prost(string, tag="1")]
+        #[prost(string, tag = "1")]
         pub action: ::prost::alloc::string::String,
-        #[prost(string, tag="2")]
+        #[prost(string, tag = "2")]
         pub field: ::prost::alloc::string::String,
     }
     #[derive(Clone, PartialEq, ::prost::Message)]
     pub struct TableObject {
-        #[prost(string, tag="1")]
+        #[prost(string, tag = "1")]
         pub table_name: ::prost::alloc::string::String,
-        #[prost(oneof="table_object::Names", tags="2, 3, 4")]
+        #[prost(oneof = "table_object::Names", tags = "2, 3, 4")]
         pub names: ::core::option::Option<table_object::Names>,
     }
     /// Nested message and enum types in `TableObject`.
     pub mod table_object {
         #[derive(Clone, PartialEq, ::prost::Oneof)]
         pub enum Names {
-            #[prost(message, tag="2")]
+            #[prost(message, tag = "2")]
             ActionName(super::ActionName),
-            #[prost(message, tag="3")]
+            #[prost(message, tag = "3")]
             KeyFieldName(super::KeyFieldName),
-            #[prost(message, tag="4")]
+            #[prost(message, tag = "4")]
             DataFieldName(super::DataFieldName),
         }
     }
     #[derive(Clone, PartialEq, ::prost::Message)]
     pub struct LearnObject {
-        #[prost(string, tag="1")]
+        #[prost(string, tag = "1")]
         pub learn_name: ::prost::alloc::string::String,
-        #[prost(message, optional, tag="2")]
+        #[prost(message, optional, tag = "2")]
         pub data_field_name: ::core::option::Option<DataFieldName>,
     }
     #[derive(Clone, PartialEq, ::prost::Oneof)]
     pub enum Object {
-        #[prost(message, tag="1")]
+        #[prost(message, tag = "1")]
         TableObject(TableObject),
-        #[prost(message, tag="2")]
+        #[prost(message, tag = "2")]
         LearnObject(LearnObject),
     }
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct StreamMessageRequest {
-    #[prost(uint32, tag="1")]
+    #[prost(uint32, tag = "1")]
     pub client_id: u32,
-    #[prost(oneof="stream_message_request::Update", tags="2, 3")]
+    #[prost(oneof = "stream_message_request::Update", tags = "2, 3")]
     pub update: ::core::option::Option<stream_message_request::Update>,
 }
 /// Nested message and enum types in `StreamMessageRequest`.
 pub mod stream_message_request {
     #[derive(Clone, PartialEq, ::prost::Oneof)]
     pub enum Update {
-        #[prost(message, tag="2")]
+        #[prost(message, tag = "2")]
         Subscribe(super::Subscribe),
-        #[prost(message, tag="3")]
+        #[prost(message, tag = "3")]
         DigestAck(super::DigestListAck),
     }
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Subscribe {
     #[deprecated]
-    #[prost(bool, tag="1")]
+    #[prost(bool, tag = "1")]
     pub is_master: bool,
     /// Master for Warm Init messages.
     /// Deprecated and not needed anymore.
     /// Keeping for backward compatibility.
     ///
     /// Device ID
-    #[prost(uint32, tag="2")]
+    #[prost(uint32, tag = "2")]
     pub device_id: u32,
     /// Contains which notifications need to be
-    #[prost(message, optional, tag="3")]
+    #[prost(message, optional, tag = "3")]
     pub notifications: ::core::option::Option<subscribe::Notifications>,
     /// enabled for this client. Default value of
     /// these notifications are false.
     ///
     /// The controller doesn't populate this field.
-    #[prost(message, optional, tag="4")]
+    #[prost(message, optional, tag = "4")]
     pub status: ::core::option::Option<super::google_rpc::Status>,
 }
 /// Nested message and enum types in `Subscribe`.
@@ -693,32 +693,32 @@ pub mod subscribe {
     #[derive(Clone, PartialEq, ::prost::Message)]
     pub struct Notifications {
         /// Enable learn digest notifications. These notifications are
-        #[prost(bool, tag="1")]
+        #[prost(bool, tag = "1")]
         pub enable_learn_notifications: bool,
         /// (device, P4-program) based so these will be triggered only after a
         /// client binds to a program.
         ///
         /// Enable idletimeout notifications. These are on per table basis and
-        #[prost(bool, tag="2")]
+        #[prost(bool, tag = "2")]
         pub enable_idletimeout_notifications: bool,
         /// hence (device, P4-Program) based so these will be triggered only
         /// after a client binds to a program.
         ///
         /// Enable port status change notifications. These notifications are
-        #[prost(bool, tag="3")]
+        #[prost(bool, tag = "3")]
         pub enable_port_status_change_notifications: bool,
     }
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct DigestListAck {
-    #[prost(uint32, tag="1")]
+    #[prost(uint32, tag = "1")]
     pub digest_id: u32,
-    #[prost(uint32, tag="2")]
+    #[prost(uint32, tag = "2")]
     pub list_id: u32,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct StreamMessageResponse {
-    #[prost(oneof="stream_message_response::Update", tags="1, 2, 3, 4, 5")]
+    #[prost(oneof = "stream_message_response::Update", tags = "1, 2, 3, 4, 5")]
     pub update: ::core::option::Option<stream_message_response::Update>,
 }
 /// Nested message and enum types in `StreamMessageResponse`.
@@ -726,55 +726,55 @@ pub mod stream_message_response {
     #[derive(Clone, PartialEq, ::prost::Oneof)]
     pub enum Update {
         /// This message is only used to let the server know
-        #[prost(message, tag="1")]
+        #[prost(message, tag = "1")]
         Subscribe(super::Subscribe),
         /// of the existence of client with this client_id
         ///
         /// Learn Digest
-        #[prost(message, tag="2")]
+        #[prost(message, tag = "2")]
         Digest(super::DigestList),
         /// Idle timeout notification
-        #[prost(message, tag="3")]
+        #[prost(message, tag = "3")]
         IdleTimeoutNotification(super::IdleTimeoutNotification),
         /// Port status change notification
-        #[prost(message, tag="4")]
+        #[prost(message, tag = "4")]
         PortStatusChangeNotification(super::PortStatusChgNotification),
         /// Response for a SetForwardingPipelineConfigRequest is sent here
-        #[prost(message, tag="5")]
+        #[prost(message, tag = "5")]
         SetForwardingPipelineConfigResponse(super::SetForwardingPipelineConfigResponse),
     }
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct SubscribeResponse {
-    #[prost(message, optional, tag="1")]
+    #[prost(message, optional, tag = "1")]
     pub status: ::core::option::Option<Error>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct DigestList {
     /// Identifies the digest extern instance
-    #[prost(uint32, tag="1")]
+    #[prost(uint32, tag = "1")]
     pub digest_id: u32,
-    #[prost(uint32, tag="2")]
+    #[prost(uint32, tag = "2")]
     pub list_id: u32,
-    #[prost(message, repeated, tag="3")]
+    #[prost(message, repeated, tag = "3")]
     pub data: ::prost::alloc::vec::Vec<TableData>,
-    #[prost(message, optional, tag="4")]
+    #[prost(message, optional, tag = "4")]
     pub target: ::core::option::Option<TargetDevice>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct IdleTimeoutNotification {
     /// Only "key" fields are required to be set in each TableEntry.
-    #[prost(message, optional, tag="1")]
+    #[prost(message, optional, tag = "1")]
     pub target: ::core::option::Option<TargetDevice>,
-    #[prost(message, optional, tag="2")]
+    #[prost(message, optional, tag = "2")]
     pub table_entry: ::core::option::Option<TableEntry>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct PortStatusChgNotification {
     /// Only "key" fields are required to be set in each TableEntry.
-    #[prost(message, optional, tag="1")]
+    #[prost(message, optional, tag = "1")]
     pub table_entry: ::core::option::Option<TableEntry>,
-    #[prost(bool, tag="2")]
+    #[prost(bool, tag = "2")]
     pub port_up: bool,
 }
 /// -----------------------------------------------------------------------------
@@ -783,24 +783,30 @@ pub struct PortStatusChgNotification {
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct SetForwardingPipelineConfigRequest {
     /// Device ID
-    #[prost(uint32, tag="1")]
+    #[prost(uint32, tag = "1")]
     pub device_id: u32,
     /// Client ID
-    #[prost(uint32, tag="2")]
+    #[prost(uint32, tag = "2")]
     pub client_id: u32,
     /// action
-    #[prost(enumeration="set_forwarding_pipeline_config_request::Action", tag="3")]
+    #[prost(
+        enumeration = "set_forwarding_pipeline_config_request::Action",
+        tag = "3"
+    )]
     pub action: i32,
     /// warm init mode. Fast reconfig or Hitless
-    #[prost(enumeration="set_forwarding_pipeline_config_request::DevInitMode", tag="4")]
+    #[prost(
+        enumeration = "set_forwarding_pipeline_config_request::DevInitMode",
+        tag = "4"
+    )]
     pub dev_init_mode: i32,
     /// The base path where the config is wished to be
-    #[prost(string, tag="5")]
+    #[prost(string, tag = "5")]
     pub base_path: ::prost::alloc::string::String,
     /// stored. If empty, then current directory is used
     ///
     /// Device's config
-    #[prost(message, repeated, tag="6")]
+    #[prost(message, repeated, tag = "6")]
     pub config: ::prost::alloc::vec::Vec<ForwardingPipelineConfig>,
 }
 /// Nested message and enum types in `SetForwardingPipelineConfigRequest`.
@@ -895,7 +901,7 @@ pub mod set_forwarding_pipeline_config_request {
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct SetForwardingPipelineConfigResponse {
-    #[prost(enumeration="SetForwardingPipelineConfigResponseType", tag="1")]
+    #[prost(enumeration = "SetForwardingPipelineConfigResponseType", tag = "1")]
     pub set_forwarding_pipeline_config_response_type: i32,
 }
 /// This message contains config of a SINGLE program. The reason config is a
@@ -904,12 +910,12 @@ pub struct SetForwardingPipelineConfigResponse {
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ForwardingPipelineConfig {
     /// P4 program name
-    #[prost(string, tag="1")]
+    #[prost(string, tag = "1")]
     pub p4_name: ::prost::alloc::string::String,
     /// BF-RT info json file contents
-    #[prost(bytes="vec", tag="2")]
+    #[prost(bytes = "vec", tag = "2")]
     pub bfruntime_info: ::prost::alloc::vec::Vec<u8>,
-    #[prost(message, repeated, tag="3")]
+    #[prost(message, repeated, tag = "3")]
     pub profiles: ::prost::alloc::vec::Vec<forwarding_pipeline_config::Profile>,
 }
 /// Nested message and enum types in `ForwardingPipelineConfig`.
@@ -918,41 +924,41 @@ pub mod forwarding_pipeline_config {
     #[derive(Clone, PartialEq, ::prost::Message)]
     pub struct Profile {
         /// profile name
-        #[prost(string, tag="1")]
+        #[prost(string, tag = "1")]
         pub profile_name: ::prost::alloc::string::String,
         /// context json file contents
-        #[prost(bytes="vec", tag="2")]
+        #[prost(bytes = "vec", tag = "2")]
         pub context: ::prost::alloc::vec::Vec<u8>,
         /// Binary to execute
-        #[prost(bytes="vec", tag="3")]
+        #[prost(bytes = "vec", tag = "3")]
         pub binary: ::prost::alloc::vec::Vec<u8>,
         /// Array of pipe_scope.
-        #[prost(uint32, repeated, tag="4")]
+        #[prost(uint32, repeated, tag = "4")]
         pub pipe_scope: ::prost::alloc::vec::Vec<u32>,
     }
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct NonP4Config {
-    #[prost(bytes="vec", tag="1")]
+    #[prost(bytes = "vec", tag = "1")]
     pub bfruntime_info: ::prost::alloc::vec::Vec<u8>,
 }
 /// Request to get config of the entire device. Any client can issue this
 /// request
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct GetForwardingPipelineConfigRequest {
-    #[prost(uint32, tag="1")]
+    #[prost(uint32, tag = "1")]
     pub device_id: u32,
-    #[prost(uint32, tag="2")]
+    #[prost(uint32, tag = "2")]
     pub client_id: u32,
 }
 /// Config of the entire device
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct GetForwardingPipelineConfigResponse {
     /// P4 info
-    #[prost(message, repeated, tag="1")]
+    #[prost(message, repeated, tag = "1")]
     pub config: ::prost::alloc::vec::Vec<ForwardingPipelineConfig>,
     /// Non-P4 info
-    #[prost(message, optional, tag="2")]
+    #[prost(message, optional, tag = "2")]
     pub non_p4_config: ::core::option::Option<NonP4Config>,
 }
 /// Error message used to report a single P4-entity error for a Write RPC.
@@ -960,18 +966,18 @@ pub struct GetForwardingPipelineConfigResponse {
 pub struct Error {
     /// gRPC canonical error code (see
     /// github.com/grpc/grpc-go/blob/master/codes/codes.go)
-    #[prost(int32, tag="1")]
+    #[prost(int32, tag = "1")]
     pub canonical_code: i32,
     /// Detailed error message.
-    #[prost(string, tag="2")]
+    #[prost(string, tag = "2")]
     pub message: ::prost::alloc::string::String,
     /// Target and architecture specific space to which this error belongs.
     /// We encourage using triplet: <target>-<arch>-<vendor>,
     /// e.g."targetX-psa-vendor1" or "targetY-psa-vendor2".
-    #[prost(string, tag="3")]
+    #[prost(string, tag = "3")]
     pub space: ::prost::alloc::string::String,
     /// Numeric code drawn from target-specific error space above.
-    #[prost(int32, tag="4")]
+    #[prost(int32, tag = "4")]
     pub code: i32,
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
@@ -982,7 +988,6 @@ pub enum SetForwardingPipelineConfigResponseType {
     // WARM_INIT_BEGIN. This is issued in case of
     // VERIFY_AND_WARM_INIT_BEGIN and
     // VERIFY_AND_WARM_INIT_BEGIN_AND_END
-
     /// WARM_INIT_FINISHED indicates a successful
     WarmInitFinished = 1,
 }
@@ -1001,8 +1006,8 @@ impl SetForwardingPipelineConfigResponseType {
 /// Generated client implementations.
 pub mod bf_runtime_client {
     #![allow(unused_variables, dead_code, missing_docs, clippy::let_unit_value)]
-    use tonic::codegen::*;
     use tonic::codegen::http::Uri;
+    use tonic::codegen::*;
     #[derive(Debug, Clone)]
     pub struct BfRuntimeClient<T> {
         inner: tonic::client::Grpc<T>,
@@ -1010,20 +1015,20 @@ pub mod bf_runtime_client {
     impl BfRuntimeClient<tonic::transport::Channel> {
         /// Attempt to create a new client by connecting to a given endpoint.
         pub async fn connect<D>(dst: D) -> Result<Self, tonic::transport::Error>
-            where
-                D: std::convert::TryInto<tonic::transport::Endpoint>,
-                D::Error: Into<StdError>,
+        where
+            D: std::convert::TryInto<tonic::transport::Endpoint>,
+            D::Error: Into<StdError>,
         {
             let conn = tonic::transport::Endpoint::new(dst)?.connect().await?;
             Ok(Self::new(conn))
         }
     }
     impl<T> BfRuntimeClient<T>
-        where
-            T: tonic::client::GrpcService<tonic::body::BoxBody>,
-            T::Error: Into<StdError>,
-            T::ResponseBody: Body<Data = Bytes> + Send + 'static,
-            <T::ResponseBody as Body>::Error: Into<StdError> + Send,
+    where
+        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T::Error: Into<StdError>,
+        T::ResponseBody: Body<Data = Bytes> + Send + 'static,
+        <T::ResponseBody as Body>::Error: Into<StdError> + Send,
     {
         pub fn new(inner: T) -> Self {
             let inner = tonic::client::Grpc::new(inner);
@@ -1037,18 +1042,17 @@ pub mod bf_runtime_client {
             inner: T,
             interceptor: F,
         ) -> BfRuntimeClient<InterceptedService<T, F>>
-            where
-                F: tonic::service::Interceptor,
-                T::ResponseBody: Default,
-                T: tonic::codegen::Service<
-                    http::Request<tonic::body::BoxBody>,
-                    Response = http::Response<
-                        <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
-                    >,
+        where
+            F: tonic::service::Interceptor,
+            T::ResponseBody: Default,
+            T: tonic::codegen::Service<
+                http::Request<tonic::body::BoxBody>,
+                Response = http::Response<
+                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
                 >,
-                <T as tonic::codegen::Service<
-                    http::Request<tonic::body::BoxBody>,
-                >>::Error: Into<StdError> + Send + Sync,
+            >,
+            <T as tonic::codegen::Service<http::Request<tonic::body::BoxBody>>>::Error:
+                Into<StdError> + Send + Sync,
         {
             BfRuntimeClient::new(InterceptedService::new(inner, interceptor))
         }
@@ -1072,61 +1076,46 @@ pub mod bf_runtime_client {
             &mut self,
             request: impl tonic::IntoRequest<super::WriteRequest>,
         ) -> Result<tonic::Response<super::WriteResponse>, tonic::Status> {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::new(
-                        tonic::Code::Unknown,
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::new(
+                    tonic::Code::Unknown,
+                    format!("Service was not ready: {}", e.into()),
+                )
+            })?;
             let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static(
-                "/bfrt_proto.BfRuntime/Write",
-            );
+            let path = http::uri::PathAndQuery::from_static("/bfrt_proto.BfRuntime/Write");
             self.inner.unary(request.into_request(), path, codec).await
         }
         /// Read one or more P4 entities from the target.
         pub async fn read(
             &mut self,
             request: impl tonic::IntoRequest<super::ReadRequest>,
-        ) -> Result<
-            tonic::Response<tonic::codec::Streaming<super::ReadResponse>>,
-            tonic::Status,
-        > {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::new(
-                        tonic::Code::Unknown,
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
+        ) -> Result<tonic::Response<tonic::codec::Streaming<super::ReadResponse>>, tonic::Status>
+        {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::new(
+                    tonic::Code::Unknown,
+                    format!("Service was not ready: {}", e.into()),
+                )
+            })?;
             let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static(
-                "/bfrt_proto.BfRuntime/Read",
-            );
-            self.inner.server_streaming(request.into_request(), path, codec).await
+            let path = http::uri::PathAndQuery::from_static("/bfrt_proto.BfRuntime/Read");
+            self.inner
+                .server_streaming(request.into_request(), path, codec)
+                .await
         }
         /// Sets the P4 fowarding-pipeline config.
         pub async fn set_forwarding_pipeline_config(
             &mut self,
             request: impl tonic::IntoRequest<super::SetForwardingPipelineConfigRequest>,
-        ) -> Result<
-            tonic::Response<super::SetForwardingPipelineConfigResponse>,
-            tonic::Status,
-        > {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::new(
-                        tonic::Code::Unknown,
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
+        ) -> Result<tonic::Response<super::SetForwardingPipelineConfigResponse>, tonic::Status>
+        {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::new(
+                    tonic::Code::Unknown,
+                    format!("Service was not ready: {}", e.into()),
+                )
+            })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
                 "/bfrt_proto.BfRuntime/SetForwardingPipelineConfig",
@@ -1137,19 +1126,14 @@ pub mod bf_runtime_client {
         pub async fn get_forwarding_pipeline_config(
             &mut self,
             request: impl tonic::IntoRequest<super::GetForwardingPipelineConfigRequest>,
-        ) -> Result<
-            tonic::Response<super::GetForwardingPipelineConfigResponse>,
-            tonic::Status,
-        > {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::new(
-                        tonic::Code::Unknown,
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
+        ) -> Result<tonic::Response<super::GetForwardingPipelineConfigResponse>, tonic::Status>
+        {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::new(
+                    tonic::Code::Unknown,
+                    format!("Service was not ready: {}", e.into()),
+                )
+            })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
                 "/bfrt_proto.BfRuntime/GetForwardingPipelineConfig",
@@ -1160,27 +1144,22 @@ pub mod bf_runtime_client {
         /// switch (initiated by the controller).
         pub async fn stream_channel(
             &mut self,
-            request: impl tonic::IntoStreamingRequest<
-                Message = super::StreamMessageRequest,
-            >,
+            request: impl tonic::IntoStreamingRequest<Message = super::StreamMessageRequest>,
         ) -> Result<
             tonic::Response<tonic::codec::Streaming<super::StreamMessageResponse>>,
             tonic::Status,
         > {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::new(
-                        tonic::Code::Unknown,
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::new(
+                    tonic::Code::Unknown,
+                    format!("Service was not ready: {}", e.into()),
+                )
+            })?;
             let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static(
-                "/bfrt_proto.BfRuntime/StreamChannel",
-            );
-            self.inner.streaming(request.into_streaming_request(), path, codec).await
+            let path = http::uri::PathAndQuery::from_static("/bfrt_proto.BfRuntime/StreamChannel");
+            self.inner
+                .streaming(request.into_streaming_request(), path, codec)
+                .await
         }
     }
 }
@@ -1197,11 +1176,9 @@ pub mod bf_runtime_server {
             request: tonic::Request<super::WriteRequest>,
         ) -> Result<tonic::Response<super::WriteResponse>, tonic::Status>;
         ///Server streaming response type for the Read method.
-        type ReadStream: futures_core::Stream<
-            Item = Result<super::ReadResponse, tonic::Status>,
-        >
-        + Send
-        + 'static;
+        type ReadStream: futures_core::Stream<Item = Result<super::ReadResponse, tonic::Status>>
+            + Send
+            + 'static;
         /// Read one or more P4 entities from the target.
         async fn read(
             &self,
@@ -1211,24 +1188,16 @@ pub mod bf_runtime_server {
         async fn set_forwarding_pipeline_config(
             &self,
             request: tonic::Request<super::SetForwardingPipelineConfigRequest>,
-        ) -> Result<
-            tonic::Response<super::SetForwardingPipelineConfigResponse>,
-            tonic::Status,
-        >;
+        ) -> Result<tonic::Response<super::SetForwardingPipelineConfigResponse>, tonic::Status>;
         /// Gets the current P4 fowarding-pipeline config.
         async fn get_forwarding_pipeline_config(
             &self,
             request: tonic::Request<super::GetForwardingPipelineConfigRequest>,
-        ) -> Result<
-            tonic::Response<super::GetForwardingPipelineConfigResponse>,
-            tonic::Status,
-        >;
+        ) -> Result<tonic::Response<super::GetForwardingPipelineConfigResponse>, tonic::Status>;
         ///Server streaming response type for the StreamChannel method.
-        type StreamChannelStream: futures_core::Stream<
-            Item = Result<super::StreamMessageResponse, tonic::Status>,
-        >
-        + Send
-        + 'static;
+        type StreamChannelStream: futures_core::Stream<Item = Result<super::StreamMessageResponse, tonic::Status>>
+            + Send
+            + 'static;
         /// Represents the bidirectional stream between the controller and the
         /// switch (initiated by the controller).
         async fn stream_channel(
@@ -1255,12 +1224,9 @@ pub mod bf_runtime_server {
                 send_compression_encodings: Default::default(),
             }
         }
-        pub fn with_interceptor<F>(
-            inner: T,
-            interceptor: F,
-        ) -> InterceptedService<Self, F>
-            where
-                F: tonic::service::Interceptor,
+        pub fn with_interceptor<F>(inner: T, interceptor: F) -> InterceptedService<Self, F>
+        where
+            F: tonic::service::Interceptor,
         {
             InterceptedService::new(Self::new(inner), interceptor)
         }
@@ -1278,18 +1244,15 @@ pub mod bf_runtime_server {
         }
     }
     impl<T, B> tonic::codegen::Service<http::Request<B>> for BfRuntimeServer<T>
-        where
-            T: BfRuntime,
-            B: Body + Send + 'static,
-            B::Error: Into<StdError> + Send + 'static,
+    where
+        T: BfRuntime,
+        B: Body + Send + 'static,
+        B::Error: Into<StdError> + Send + 'static,
     {
         type Response = http::Response<tonic::body::BoxBody>;
         type Error = std::convert::Infallible;
         type Future = BoxFuture<Self::Response, Self::Error>;
-        fn poll_ready(
-            &mut self,
-            _cx: &mut Context<'_>,
-        ) -> Poll<Result<(), Self::Error>> {
+        fn poll_ready(&mut self, _cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
             Poll::Ready(Ok(()))
         }
         fn call(&mut self, req: http::Request<B>) -> Self::Future {
@@ -1298,13 +1261,9 @@ pub mod bf_runtime_server {
                 "/bfrt_proto.BfRuntime/Write" => {
                     #[allow(non_camel_case_types)]
                     struct WriteSvc<T: BfRuntime>(pub Arc<T>);
-                    impl<T: BfRuntime> tonic::server::UnaryService<super::WriteRequest>
-                    for WriteSvc<T> {
+                    impl<T: BfRuntime> tonic::server::UnaryService<super::WriteRequest> for WriteSvc<T> {
                         type Response = super::WriteResponse;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::Response>,
-                            tonic::Status,
-                        >;
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
                         fn call(
                             &mut self,
                             request: tonic::Request<super::WriteRequest>,
@@ -1321,11 +1280,10 @@ pub mod bf_runtime_server {
                         let inner = inner.0;
                         let method = WriteSvc(inner);
                         let codec = tonic::codec::ProstCodec::default();
-                        let mut grpc = tonic::server::Grpc::new(codec)
-                            .apply_compression_config(
-                                accept_compression_encodings,
-                                send_compression_encodings,
-                            );
+                        let mut grpc = tonic::server::Grpc::new(codec).apply_compression_config(
+                            accept_compression_encodings,
+                            send_compression_encodings,
+                        );
                         let res = grpc.unary(method, req).await;
                         Ok(res)
                     };
@@ -1334,16 +1292,11 @@ pub mod bf_runtime_server {
                 "/bfrt_proto.BfRuntime/Read" => {
                     #[allow(non_camel_case_types)]
                     struct ReadSvc<T: BfRuntime>(pub Arc<T>);
-                    impl<
-                        T: BfRuntime,
-                    > tonic::server::ServerStreamingService<super::ReadRequest>
-                    for ReadSvc<T> {
+                    impl<T: BfRuntime> tonic::server::ServerStreamingService<super::ReadRequest> for ReadSvc<T> {
                         type Response = super::ReadResponse;
                         type ResponseStream = T::ReadStream;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::ResponseStream>,
-                            tonic::Status,
-                        >;
+                        type Future =
+                            BoxFuture<tonic::Response<Self::ResponseStream>, tonic::Status>;
                         fn call(
                             &mut self,
                             request: tonic::Request<super::ReadRequest>,
@@ -1360,11 +1313,10 @@ pub mod bf_runtime_server {
                         let inner = inner.0;
                         let method = ReadSvc(inner);
                         let codec = tonic::codec::ProstCodec::default();
-                        let mut grpc = tonic::server::Grpc::new(codec)
-                            .apply_compression_config(
-                                accept_compression_encodings,
-                                send_compression_encodings,
-                            );
+                        let mut grpc = tonic::server::Grpc::new(codec).apply_compression_config(
+                            accept_compression_encodings,
+                            send_compression_encodings,
+                        );
                         let res = grpc.server_streaming(method, req).await;
                         Ok(res)
                     };
@@ -1373,21 +1325,15 @@ pub mod bf_runtime_server {
                 "/bfrt_proto.BfRuntime/SetForwardingPipelineConfig" => {
                     #[allow(non_camel_case_types)]
                     struct SetForwardingPipelineConfigSvc<T: BfRuntime>(pub Arc<T>);
-                    impl<
-                        T: BfRuntime,
-                    > tonic::server::UnaryService<
-                        super::SetForwardingPipelineConfigRequest,
-                    > for SetForwardingPipelineConfigSvc<T> {
+                    impl<T: BfRuntime>
+                        tonic::server::UnaryService<super::SetForwardingPipelineConfigRequest>
+                        for SetForwardingPipelineConfigSvc<T>
+                    {
                         type Response = super::SetForwardingPipelineConfigResponse;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::Response>,
-                            tonic::Status,
-                        >;
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
                         fn call(
                             &mut self,
-                            request: tonic::Request<
-                                super::SetForwardingPipelineConfigRequest,
-                            >,
+                            request: tonic::Request<super::SetForwardingPipelineConfigRequest>,
                         ) -> Self::Future {
                             let inner = self.0.clone();
                             let fut = async move {
@@ -1403,11 +1349,10 @@ pub mod bf_runtime_server {
                         let inner = inner.0;
                         let method = SetForwardingPipelineConfigSvc(inner);
                         let codec = tonic::codec::ProstCodec::default();
-                        let mut grpc = tonic::server::Grpc::new(codec)
-                            .apply_compression_config(
-                                accept_compression_encodings,
-                                send_compression_encodings,
-                            );
+                        let mut grpc = tonic::server::Grpc::new(codec).apply_compression_config(
+                            accept_compression_encodings,
+                            send_compression_encodings,
+                        );
                         let res = grpc.unary(method, req).await;
                         Ok(res)
                     };
@@ -1416,21 +1361,15 @@ pub mod bf_runtime_server {
                 "/bfrt_proto.BfRuntime/GetForwardingPipelineConfig" => {
                     #[allow(non_camel_case_types)]
                     struct GetForwardingPipelineConfigSvc<T: BfRuntime>(pub Arc<T>);
-                    impl<
-                        T: BfRuntime,
-                    > tonic::server::UnaryService<
-                        super::GetForwardingPipelineConfigRequest,
-                    > for GetForwardingPipelineConfigSvc<T> {
+                    impl<T: BfRuntime>
+                        tonic::server::UnaryService<super::GetForwardingPipelineConfigRequest>
+                        for GetForwardingPipelineConfigSvc<T>
+                    {
                         type Response = super::GetForwardingPipelineConfigResponse;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::Response>,
-                            tonic::Status,
-                        >;
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
                         fn call(
                             &mut self,
-                            request: tonic::Request<
-                                super::GetForwardingPipelineConfigRequest,
-                            >,
+                            request: tonic::Request<super::GetForwardingPipelineConfigRequest>,
                         ) -> Self::Future {
                             let inner = self.0.clone();
                             let fut = async move {
@@ -1446,11 +1385,10 @@ pub mod bf_runtime_server {
                         let inner = inner.0;
                         let method = GetForwardingPipelineConfigSvc(inner);
                         let codec = tonic::codec::ProstCodec::default();
-                        let mut grpc = tonic::server::Grpc::new(codec)
-                            .apply_compression_config(
-                                accept_compression_encodings,
-                                send_compression_encodings,
-                            );
+                        let mut grpc = tonic::server::Grpc::new(codec).apply_compression_config(
+                            accept_compression_encodings,
+                            send_compression_encodings,
+                        );
                         let res = grpc.unary(method, req).await;
                         Ok(res)
                     };
@@ -1459,26 +1397,19 @@ pub mod bf_runtime_server {
                 "/bfrt_proto.BfRuntime/StreamChannel" => {
                     #[allow(non_camel_case_types)]
                     struct StreamChannelSvc<T: BfRuntime>(pub Arc<T>);
-                    impl<
-                        T: BfRuntime,
-                    > tonic::server::StreamingService<super::StreamMessageRequest>
-                    for StreamChannelSvc<T> {
+                    impl<T: BfRuntime> tonic::server::StreamingService<super::StreamMessageRequest>
+                        for StreamChannelSvc<T>
+                    {
                         type Response = super::StreamMessageResponse;
                         type ResponseStream = T::StreamChannelStream;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::ResponseStream>,
-                            tonic::Status,
-                        >;
+                        type Future =
+                            BoxFuture<tonic::Response<Self::ResponseStream>, tonic::Status>;
                         fn call(
                             &mut self,
-                            request: tonic::Request<
-                                tonic::Streaming<super::StreamMessageRequest>,
-                            >,
+                            request: tonic::Request<tonic::Streaming<super::StreamMessageRequest>>,
                         ) -> Self::Future {
                             let inner = self.0.clone();
-                            let fut = async move {
-                                (*inner).stream_channel(request).await
-                            };
+                            let fut = async move { (*inner).stream_channel(request).await };
                             Box::pin(fut)
                         }
                     }
@@ -1489,28 +1420,23 @@ pub mod bf_runtime_server {
                         let inner = inner.0;
                         let method = StreamChannelSvc(inner);
                         let codec = tonic::codec::ProstCodec::default();
-                        let mut grpc = tonic::server::Grpc::new(codec)
-                            .apply_compression_config(
-                                accept_compression_encodings,
-                                send_compression_encodings,
-                            );
+                        let mut grpc = tonic::server::Grpc::new(codec).apply_compression_config(
+                            accept_compression_encodings,
+                            send_compression_encodings,
+                        );
                         let res = grpc.streaming(method, req).await;
                         Ok(res)
                     };
                     Box::pin(fut)
                 }
-                _ => {
-                    Box::pin(async move {
-                        Ok(
-                            http::Response::builder()
-                                .status(200)
-                                .header("grpc-status", "12")
-                                .header("content-type", "application/grpc")
-                                .body(empty_body())
-                                .unwrap(),
-                        )
-                    })
-                }
+                _ => Box::pin(async move {
+                    Ok(http::Response::builder()
+                        .status(200)
+                        .header("grpc-status", "12")
+                        .header("content-type", "application/grpc")
+                        .body(empty_body())
+                        .unwrap())
+                }),
             }
         }
     }

@@ -1,7 +1,7 @@
 [package]
 name = "rbfrt"
-version = "0.1.4-alpha"
-authors = ["Steffen Lindner", "Fabian Ihle"]
+version = "0.1.5-alpha"
+authors = ["Steffen Lindner", "Fabian Ihle", "Etienne Zink"]
 edition = "2021"
 license = "Apache-2.0"
 description = "Rust library for interaction with Intel Tofino(TM) BFRT switch interface."

@@ -16,12 +16,10 @@
 /*
  * Steffen Lindner (steffen.lindner@uni-tuebingen.de)
  */
-pub mod port_manager;
-pub mod pretty_printer;
 mod digest;
+mod port_manager;
+mod pretty_printer;
 
 pub use digest::Digest;
-
-pub use port_manager::PortManager;
-
+pub use port_manager::{AutoNegotiation, Loopback, Port, PortManager, Speed, FEC};
 pub use pretty_printer::PrettyPrinter;
