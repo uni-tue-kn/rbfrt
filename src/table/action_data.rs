@@ -68,6 +68,17 @@ impl ActionData {
     pub fn as_u32(&self) -> u32 {
         self.get_data().to_u32()
     }
+
+    /// Returns the data as an [u64].
+    pub fn as_u64(&self) -> u64 {
+        self.get_data().to_u64()
+    }    
+
+    /// Returns the data as an [u128].
+    pub fn as_u128(&self) -> u128 {
+        self.get_data().to_u128()
+    }
+    
 }
 
 impl ActionDataRepeated {
