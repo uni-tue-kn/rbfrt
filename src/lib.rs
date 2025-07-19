@@ -699,6 +699,9 @@ impl SwitchConnection {
                         }
                     }
                 }
+                // This drains all remanining messages in the stream.
+                // In the bfrt, we only get a single message, so this shouldnt be a problem.
+                // However, without doing this, the stream will not be closed and the connection will hang.
                 let _ = stream.trailers().await;
                 Ok(entries)
             }
