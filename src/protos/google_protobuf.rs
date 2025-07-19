@@ -4,7 +4,7 @@
 ///
 /// Protobuf library provides support to pack/unpack Any values in the form
 /// of utility functions or additional generated methods of the Any type.
-///
+/// ```ignore
 /// Example 1: Pack and unpack a message in C++.
 ///
 ///      Foo foo = ...;
@@ -47,6 +47,7 @@
 ///         ...
 ///       }
 ///
+///
 /// The pack methods provided by protobuf library will by default use
 /// 'type.googleapis.com/full.type.name' as the type URL and the unpack
 /// methods only use the fully qualified type name after the last '/'
@@ -81,6 +82,7 @@
 ///        "@type": "type.googleapis.com/google.protobuf.Duration",
 ///        "value": "1.212s"
 ///      }
+/// ```
 ///
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Any {
