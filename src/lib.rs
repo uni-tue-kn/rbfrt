@@ -679,7 +679,6 @@ impl SwitchConnection {
             DispatchResult::ReadResult { response } => {
                 let mut stream = response.into_inner();
                 let message = stream.message().await?.unwrap();
-
                 for entity in message.entities {
                     let entity = entity.entity.unwrap();
 
@@ -700,10 +699,7 @@ impl SwitchConnection {
                         }
                     }
                 }
-
-                let metadata = stream.trailers().await?;
-                debug!("Drained Metadata: {metadata:?}");
-
+                let _ = stream.trailers().await;
                 Ok(entries)
             }
             _ => {
