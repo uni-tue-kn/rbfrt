@@ -99,8 +99,8 @@ use tonic::transport::Channel;
 use tonic::{Response, Streaming};
 
 /// Size of the internal digest queue
-/// Up to 10k elements with back pressure
-const DIGEST_QUEUE_SIZE: usize = 10000;
+/// Up to 20k elements with back pressure
+const DIGEST_QUEUE_SIZE: usize = 20000;
 
 #[allow(dead_code)]
 #[allow(clippy::large_enum_variant)]
@@ -333,8 +333,14 @@ impl SwitchConnection {
 
         // start thread to listen for notifications
         tokio::spawn(async move {
-            let response_channel = clone.stream_channel(req);
-            let mut resp = response_channel.await.unwrap().into_inner();
+            let response_channel = match clone.stream_channel(req).await {
+                Ok(res) => res,
+                Err(e) => {
+                    warn!("Failed to open stream_channel: {e}");
+                    return;
+                }
+            };
+            let mut resp = response_channel.into_inner();
 
             loop {
                 match resp.message().await {
