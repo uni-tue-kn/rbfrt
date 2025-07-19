@@ -185,9 +185,11 @@ impl SwitchConnectionBuilder {
 
         match BfRuntimeClient::connect(format!("http://{}:{}", self.ip, self.port)).await {
             Ok(client) => {
-                let client = client.max_decoding_message_size(16 * 1024 * 1024);
-                let client = client.max_encoding_message_size(16 * 1024 * 1024);
-                let bf_client = Mutex::new(client);
+                let bf_client = Mutex::new(
+                    client
+                        .max_decoding_message_size(16 * 1024 * 1024)
+                        .max_encoding_message_size(16 * 1024 * 1024),
+                );
 
                 let (request_tx, request_rx) =
                     tokio::sync::mpsc::channel::<StreamMessageRequest>(DIGEST_QUEUE_SIZE);
