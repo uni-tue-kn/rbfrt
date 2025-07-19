@@ -341,13 +341,14 @@ impl SwitchConnection {
                     return;
                 }
             };
+            info!("Started stream_channel");
             let mut resp = response_channel.into_inner();
 
             loop {
                 match resp.message().await {
                     Ok(Some(msg)) => match msg.clone().update.unwrap() {
                         Update::Subscribe(_) | Update::Digest(_) => {
-                            if let Err(e) = response_tx.send(msg).await {
+                            if let Err(e) = response_tx.try_send(msg) {
                                 warn!("Failed to send notification: {e}");
                             }
                         }
@@ -366,8 +367,6 @@ impl SwitchConnection {
                         break;
                     }
                 }
-                // hacky, remove this later
-                tokio::time::sleep(Duration::from_millis(1)).await;
             }
 
             warn!("Notification channel closed.");
