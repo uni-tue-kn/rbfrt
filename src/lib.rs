@@ -346,7 +346,9 @@ impl SwitchConnection {
                 match resp.message().await {
                     Ok(Some(msg)) => match msg.clone().update.unwrap() {
                         Update::Subscribe(_) | Update::Digest(_) => {
-                            let _ = response_tx.try_send(msg);
+                            if let Err(e) = response_tx.send(msg).await {
+                                warn!("Failed to send notification: {e}");
+                            }
                         }
                         _ => {
                             warn!(
