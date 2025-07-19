@@ -336,15 +336,25 @@ impl SwitchConnection {
             let response_channel = clone.stream_channel(req);
             let mut resp = response_channel.await.unwrap().into_inner();
 
-            while let Ok(Some(msg)) = resp.message().await {
-                match msg.clone().update.unwrap() {
-                    Update::Subscribe(_) | Update::Digest(_) => {
-                        let _ = response_tx.try_send(msg);
+            loop {
+                match resp.message().await {
+                    Ok(Some(msg)) => match msg.clone().update.unwrap() {
+                        Update::Subscribe(_) | Update::Digest(_) => {
+                            let _ = response_tx.try_send(msg);
+                        }
+                        _ => {
+                            warn!(
+                                    "Got a notification that is currently not supported. Will be ignored."
+                                );
+                        }
+                    },
+                    Ok(None) => {
+                        warn!("Stream was closed by sender.");
+                        break;
                     }
-                    _ => {
-                        warn!(
-                            "Got a notification that is currently not supported. Will be ignored."
-                        );
+                    Err(e) => {
+                        warn!("Error receiving notification: {e}");
+                        break;
                     }
                 }
             }
