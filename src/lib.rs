@@ -314,6 +314,7 @@ impl SwitchConnection {
                         enable_learn_notifications: true,
                         enable_idletimeout_notifications: true,
                         enable_port_status_change_notifications: true,
+                        enable_entry_active_notifications: true,
                     }),
                     status: None,
                 },
