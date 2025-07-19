@@ -91,6 +91,7 @@ use log::{debug, info, warn};
 use protos::bfrt_proto;
 use std::collections::HashMap;
 use std::io::Read;
+use std::time::Duration;
 use std::{fs, str};
 use table::{Request, RequestType, TableEntry};
 use tokio::sync::Mutex;
@@ -365,6 +366,8 @@ impl SwitchConnection {
                         break;
                     }
                 }
+                // hacky, remove this later
+                tokio::time::sleep(Duration::from_millis(1)).await;
             }
 
             warn!("Notification channel closed.");
