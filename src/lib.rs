@@ -91,7 +91,6 @@ use log::{debug, info, warn};
 use protos::bfrt_proto;
 use std::collections::HashMap;
 use std::io::Read;
-use std::time::Duration;
 use std::{fs, str};
 use table::{Request, RequestType, TableEntry};
 use tokio::sync::Mutex;
@@ -678,7 +677,8 @@ impl SwitchConnection {
 
         match self.dispatch_request(&veq_req).await? {
             DispatchResult::ReadResult { response } => {
-                let message = response.into_inner().message().await?.unwrap();
+                let mut stream = response.into_inner();
+                let message = stream.message().await?.unwrap();
 
                 for entity in message.entities {
                     let entity = entity.entity.unwrap();
@@ -700,6 +700,9 @@ impl SwitchConnection {
                         }
                     }
                 }
+
+                let metadata = stream.trailers().await?;
+                debug!("Drained Metadata: {metadata:?}");
 
                 Ok(entries)
             }
