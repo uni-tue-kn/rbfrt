@@ -98,12 +98,12 @@ pub struct Any {
     ///
     /// * If no scheme is provided, `https` is assumed.
     /// * An HTTP GET on the URL must yield a [google.protobuf.Type][]
-    ///    value in binary format, or produce an error.
+    ///   value in binary format, or produce an error.
     /// * Applications are allowed to cache lookup results based on the
-    ///    URL, or have them precompiled into a binary to avoid any
-    ///    lookup. Therefore, binary compatibility needs to be preserved
-    ///    on changes to types. (Use versioned type names to manage
-    ///    breaking changes.)
+    ///   URL, or have them precompiled into a binary to avoid any
+    ///   lookup. Therefore, binary compatibility needs to be preserved
+    ///   on changes to types. (Use versioned type names to manage
+    ///   breaking changes.)
     ///
     /// Note: this functionality is not currently available in the official
     /// protobuf release, and it is not used for type URLs beginning with

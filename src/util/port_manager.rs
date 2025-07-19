@@ -74,25 +74,25 @@ pub enum Loopback {
 
 impl fmt::Display for Speed {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{:?}", self)
+        write!(f, "{self:?}")
     }
 }
 
 impl fmt::Display for AutoNegotiation {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{:?}", self)
+        write!(f, "{self:?}")
     }
 }
 
 impl fmt::Display for FEC {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{:?}", self)
+        write!(f, "{self:?}")
     }
 }
 
 impl fmt::Display for Loopback {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{:?}", self)
+        write!(f, "{self:?}")
     }
 }
 
@@ -248,7 +248,7 @@ impl PortManager {
     async fn init(&mut self, switch: &SwitchConnection) {
         match self.do_init(switch).await {
             Ok(_) => {}
-            Err(e) => panic!("Error while initializing port manager: {:?}", e),
+            Err(e) => panic!("Error while initializing port manager: {e:?}"),
         }
     }
     async fn do_init(&mut self, switch: &SwitchConnection) -> Result<(), RBFRTError> {
@@ -457,15 +457,15 @@ impl PortManager {
     pub fn dev_port(&self, port: u32, channel: u8) -> Result<u32, RBFRTError> {
         if self
             .mapping_name_to_dev
-            .contains_key(&format!("{}/{}", port, channel))
+            .contains_key(&format!("{port}/{channel}"))
         {
             Ok(*self
                 .mapping_name_to_dev
-                .get(&format!("{}/{}", port, channel))
+                .get(&format!("{port}/{channel}"))
                 .unwrap())
         } else {
             Err(PortNotFound {
-                name: format!("{}/{}", port, channel),
+                name: format!("{port}/{channel}"),
             })
         }
     }
@@ -476,7 +476,7 @@ impl PortManager {
             Ok(*self.mapping_dev_to_name.get(&dev_port).unwrap())
         } else {
             Err(PortNotFound {
-                name: format!("{}", dev_port),
+                name: format!("{dev_port}"),
             })
         }
     }

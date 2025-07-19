@@ -247,7 +247,7 @@ impl BFRTTableObject {
                 table_read_flag: None,
                 table_mod_inc_flag: None,
                 entry_tgt: if let Some(pipe) = request.get_pipe() {
-                    let mut t = target.clone();
+                    let mut t = *target;
                     t.pipe_id = pipe;
                     Some(t)
                 } else {
@@ -275,7 +275,7 @@ impl BFRTTableObject {
                 table_read_flag: None,
                 table_mod_inc_flag: None,
                 entry_tgt: if let Some(pipe) = request.get_pipe() {
-                    let mut t = target.clone();
+                    let mut t = *target;
                     t.pipe_id = pipe;
                     Some(t)
                 } else {
@@ -329,7 +329,7 @@ impl BFRTTableObject {
                 table_read_flag: None,
                 table_mod_inc_flag: None,
                 entry_tgt: if let Some(pipe) = request.get_pipe() {
-                    let mut t = target.clone();
+                    let mut t = *target;
                     t.pipe_id = pipe;
                     Some(t)
                 } else {
