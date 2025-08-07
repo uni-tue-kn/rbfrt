@@ -102,7 +102,7 @@ impl PrettyPrinter {
         } else if data.len() % 4 == 0 {
             address = format!("{:?}", data.to_int_arr());
         } else {
-            address = format!("{:?}", data);
+            address = format!("{data:?}");
         }
 
         if self.get_infer_address_type_flag() && (key.contains("addr") || key.contains("address")) {
@@ -281,7 +281,7 @@ impl PrettyPrinter {
                 table.add_row(Row::from(row_entry));
             }
 
-            println!("{:?}:", table_name);
+            println!("{table_name:?}:");
             table.printstd();
             println!();
         }

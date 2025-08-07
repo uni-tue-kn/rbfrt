@@ -2,4 +2,12 @@
 
 #[allow(clippy::all)]
 pub mod bfrt_proto;
-pub mod google_rpc;
+pub mod google_protobuf;
+pub mod google {
+    pub mod rpc {
+        include!("google_rpc.rs");
+    }
+}
+pub mod protobuf {
+    include!("google_protobuf.rs");
+}

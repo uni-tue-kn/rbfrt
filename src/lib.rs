@@ -99,10 +99,11 @@ use tonic::transport::Channel;
 use tonic::{Response, Streaming};
 
 /// Size of the internal digest queue
-/// Up to 10k elements with back pressure
-const DIGEST_QUEUE_SIZE: usize = 10000;
+/// Up to 20k elements with back pressure
+const DIGEST_QUEUE_SIZE: usize = 20000;
 
 #[allow(dead_code)]
+#[allow(clippy::large_enum_variant)]
 enum DispatchResult {
     ReadResult {
         response: Response<Streaming<ReadResponse>>,
@@ -184,7 +185,11 @@ impl SwitchConnectionBuilder {
 
         match BfRuntimeClient::connect(format!("http://{}:{}", self.ip, self.port)).await {
             Ok(client) => {
-                let bf_client = Mutex::new(client);
+                let bf_client = Mutex::new(
+                    client
+                        .max_decoding_message_size(16 * 1024 * 1024)
+                        .max_encoding_message_size(16 * 1024 * 1024),
+                );
 
                 let (request_tx, request_rx) =
                     tokio::sync::mpsc::channel::<StreamMessageRequest>(DIGEST_QUEUE_SIZE);
@@ -314,6 +319,7 @@ impl SwitchConnection {
                         enable_learn_notifications: true,
                         enable_idletimeout_notifications: true,
                         enable_port_status_change_notifications: true,
+                        enable_entry_active_notifications: true,
                     }),
                     status: None,
                 },
@@ -327,18 +333,37 @@ impl SwitchConnection {
 
         // start thread to listen for notifications
         tokio::spawn(async move {
-            let response_channel = clone.stream_channel(req);
-            let mut resp = response_channel.await.unwrap().into_inner();
+            let response_channel = match clone.stream_channel(req).await {
+                Ok(res) => res,
+                Err(e) => {
+                    warn!("Failed to open stream_channel: {e}");
+                    return;
+                }
+            };
+            info!("Started stream_channel");
+            let mut resp = response_channel.into_inner();
 
-            while let Ok(Some(msg)) = resp.message().await {
-                match msg.clone().update.unwrap() {
-                    Update::Subscribe(_) | Update::Digest(_) => {
-                        let _ = response_tx.try_send(msg);
+            loop {
+                match resp.message().await {
+                    Ok(Some(msg)) => match msg.clone().update.unwrap() {
+                        Update::Subscribe(_) | Update::Digest(_) => {
+                            if let Err(e) = response_tx.try_send(msg) {
+                                warn!("Failed to send notification: {e}");
+                            }
+                        }
+                        _ => {
+                            warn!(
+                                    "Got a notification that is currently not supported. Will be ignored."
+                                );
+                        }
+                    },
+                    Ok(None) => {
+                        warn!("Stream was closed by sender.");
+                        break;
                     }
-                    _ => {
-                        warn!(
-                            "Got a notification that is currently not supported. Will be ignored."
-                        );
+                    Err(e) => {
+                        warn!("Error receiving notification: {e}");
+                        break;
                     }
                 }
             }
@@ -439,16 +464,13 @@ impl SwitchConnection {
                                         let id = field.field_id;
                                         let field_name = filter.get_data_field_name_by_id(id);
 
-                                        if field_name.is_ok() {
+                                        if let Ok(field_name) = field_name {
                                             let data = field.value;
 
-                                            if data.is_some() {
-                                                let data = data.unwrap();
-
+                                            if let Some(data) = data {
                                                 match data {
                                                     Value::Stream(data) => {
-                                                        digest_fields
-                                                            .insert(field_name.unwrap(), data);
+                                                        digest_fields.insert(field_name, data);
                                                     }
                                                     _ => {
                                                         warn!("Not supported digest field type received.");
@@ -467,7 +489,7 @@ impl SwitchConnection {
                                 }
                             }
                             Err(err) => {
-                                warn!("Received an error while retrieving learn filter: {}", err);
+                                warn!("Received an error while retrieving learn filter: {err}");
                             }
                         }
                     }
@@ -486,10 +508,10 @@ impl SwitchConnection {
     /// * `file_path` - Path to the file
     fn read_file_to_bytes(&self, file_path: &str) -> Vec<u8> {
         let mut file =
-            fs::File::open(file_path).unwrap_or_else(|_| panic!("Unable to read: {}", file_path));
+            fs::File::open(file_path).unwrap_or_else(|_| panic!("Unable to read: {file_path}"));
 
         let metadata = fs::metadata(file_path)
-            .unwrap_or_else(|_| panic!("Unable to read metadata for {}.", file_path));
+            .unwrap_or_else(|_| panic!("Unable to read metadata for {file_path}."));
         let mut file_buffer = vec![0; metadata.len() as usize];
         file.read_exact(&mut file_buffer).expect("buffer overflow");
 
@@ -503,7 +525,7 @@ impl SwitchConnection {
         debug!("Set forwarding pipeline.");
 
         let file = fs::File::open(config_file)
-            .unwrap_or_else(|_| panic!("config file: {} not readable.", config_file));
+            .unwrap_or_else(|_| panic!("config file: {config_file} not readable."));
         let config: core::Configuration =
             serde_json::from_reader(file).expect("config file has invalid json format.");
 
@@ -617,7 +639,7 @@ impl SwitchConnection {
     ///
     /// See [TableOperation](crate::table::TableOperation) for supported operations, like synchronization of counters or registers.
     pub async fn execute_operation(&self, request: Request) -> Result<(), RBFRTError> {
-        debug!("Execute operation {:?}", request);
+        debug!("Execute operation {request:?}");
         let req = request.request_type(RequestType::Operation);
 
         let vec_req = vec![req];
@@ -655,8 +677,8 @@ impl SwitchConnection {
 
         match self.dispatch_request(&veq_req).await? {
             DispatchResult::ReadResult { response } => {
-                let message = response.into_inner().message().await?.unwrap();
-
+                let mut stream = response.into_inner();
+                let message = stream.message().await?.unwrap();
                 for entity in message.entities {
                     let entity = entity.entity.unwrap();
 
@@ -677,7 +699,10 @@ impl SwitchConnection {
                         }
                     }
                 }
-
+                // This drains all remanining messages in the stream.
+                // In the bfrt, we only get a single message, so this shouldnt be a problem.
+                // However, without doing this, the stream will not be closed and the connection will hang.
+                let _ = stream.trailers().await;
                 Ok(entries)
             }
             _ => {
@@ -691,7 +716,7 @@ impl SwitchConnection {
     /// The entry's key must not be present in the table to insert the new entry.
     /// See [update_table_entry](crate::SwitchConnection::update_table_entry) to update an existing entry.
     pub async fn write_table_entry(&self, request: Request) -> Result<(), RBFRTError> {
-        debug!("Write table entry {:?}", request);
+        debug!("Write table entry {request:?}");
 
         let req = request.request_type(RequestType::Write);
         let vec_req = vec![req];
@@ -706,7 +731,7 @@ impl SwitchConnection {
     /// The entries' keys must not be present in the table to insert the new entries.
     /// See [update_table_entries](crate::SwitchConnection::update_table_entries) to update existing entries.
     pub async fn write_table_entries(&self, requests: Vec<Request>) -> Result<(), RBFRTError> {
-        debug!("Write table entry {:?}", requests);
+        debug!("Write table entry {requests:?}");
         let req = requests
             .iter()
             .map(|x| x.clone().request_type(RequestType::Write))
@@ -721,7 +746,7 @@ impl SwitchConnection {
     /// The entry's key must be present in the table to update the entry.
     /// See [write_table_entry](crate::SwitchConnection::write_table_entry) to insert a new entry.
     pub async fn update_table_entry(&self, request: Request) -> Result<(), RBFRTError> {
-        debug!("Update table entry {:?}", request);
+        debug!("Update table entry {request:?}");
         let req = request.request_type(RequestType::Update);
         let vec_req = vec![req];
         self.dispatch_request(&vec_req).await?;
@@ -734,7 +759,7 @@ impl SwitchConnection {
     /// The entries' keys must be present in the tables to update the entries.
     /// See [write_table_entries](crate::SwitchConnection::write_table_entries) to insert new entries.
     pub async fn update_table_entries(&self, requests: Vec<Request>) -> Result<(), RBFRTError> {
-        debug!("Update table entry {:?}", requests);
+        debug!("Update table entry {requests:?}");
         let req = requests
             .iter()
             .map(|x| x.clone().request_type(RequestType::Update))
@@ -748,7 +773,7 @@ impl SwitchConnection {
     ///
     /// See [clear_table](crate::SwitchConnection::clear_table) to delete all entries inside the table.
     pub async fn delete_table_entry(&self, request: Request) -> Result<(), RBFRTError> {
-        debug!("Delete table entry {:?}", request);
+        debug!("Delete table entry {request:?}");
         let req = request.request_type(RequestType::Delete);
 
         let vec_req = vec![req];
@@ -762,7 +787,7 @@ impl SwitchConnection {
     ///
     /// See [clear_tables](crate::SwitchConnection::clear_tables) to delete all entries inside the tables.
     pub async fn delete_table_entries(&self, request: Vec<Request>) -> Result<(), RBFRTError> {
-        debug!("Delete table entries {:?}", request);
+        debug!("Delete table entries {request:?}");
         let vec_req = request
             .iter()
             .map(|x| x.clone().request_type(RequestType::Delete))
@@ -777,7 +802,7 @@ impl SwitchConnection {
     ///
     /// See [delete_table_entry](crate::SwitchConnection::delete_table_entry) or [delete_table_entries](crate::SwitchConnection::delete_table_entries) to delete one or multiple entries inside the table.
     pub async fn clear_table(&self, name: &str) -> Result<(), RBFRTError> {
-        debug!("Clear table : {}", name);
+        debug!("Clear table : {name}");
         let req = Request::new(name);
 
         self.delete_table_entry(req).await?;
@@ -789,7 +814,7 @@ impl SwitchConnection {
     ///
     /// See [delete_table_entry](crate::SwitchConnection::delete_table_entry) or [delete_table_entries](crate::SwitchConnection::delete_table_entries) to delete one or multiple entries inside the tables.
     pub async fn clear_tables(&self, name: Vec<&str>) -> Result<(), RBFRTError> {
-        debug!("Clear tables : {:?}", name);
+        debug!("Clear tables : {name:?}");
         let reqs: Vec<Request> = name.iter().map(|x| Request::new(x)).collect();
 
         self.delete_table_entries(reqs).await?;
@@ -802,7 +827,7 @@ impl SwitchConnection {
         &self,
         request: register::Request,
     ) -> Result<Register, RBFRTError> {
-        debug!("Read register {:?}", request);
+        debug!("Read register {request:?}");
         let mut table_request = Request::new(request.get_name()).request_type(RequestType::Read);
 
         if request.get_index().is_some() {
@@ -824,7 +849,7 @@ impl SwitchConnection {
         &self,
         requests: Vec<register::Request>,
     ) -> Result<Register, RBFRTError> {
-        debug!("Read register {:?}", requests);
+        debug!("Read register {requests:?}");
 
         let name = requests.first().as_ref().unwrap().get_name();
 
@@ -848,7 +873,7 @@ impl SwitchConnection {
 
     /// Writes a value into a register.
     pub async fn write_register_entry(&self, request: register::Request) -> Result<(), RBFRTError> {
-        debug!("Write register {:?}", request);
+        debug!("Write register {request:?}");
         let mut table_request = Request::new(request.get_name());
 
         if request.get_index().is_none() {
@@ -874,7 +899,7 @@ impl SwitchConnection {
         &self,
         requests: Vec<register::Request>,
     ) -> Result<(), RBFRTError> {
-        debug!("Write register {:?}", requests);
+        debug!("Write register {requests:?}");
 
         let mut write_req = vec![];
 

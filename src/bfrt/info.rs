@@ -33,7 +33,7 @@ pub struct BFRTInfo {
 impl BFRTInfo {
     pub fn table_get(&self, name: &str) -> Result<&BFRTTableObject, RBFRTError> {
         for t in &self.tables {
-            if t.name() == format!("pipe.{}", name) || t.name() == name {
+            if t.name() == format!("pipe.{name}") || t.name() == name {
                 return Ok(t);
             }
         }

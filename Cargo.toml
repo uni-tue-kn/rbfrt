@@ -1,6 +1,6 @@
 [package]
 name = "rbfrt"
-version = "0.1.5-alpha"
+version = "0.1.6-alpha"
 authors = ["Steffen Lindner", "Fabian Ihle", "Etienne Zink"]
 edition = "2021"
 license = "Apache-2.0"
@@ -10,20 +10,22 @@ publish = false
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-tonic = "0.8.0"
-prost = "0.11.0"
-prost-types = "0.11.1"
-tokio = { version = "1.20.1", features = ["rt-multi-thread"] }
-serde = { version = "1.0.34", features = ["derive"] }
-serde_json = "1.0.34"
-thiserror = "1.0"
-strum = "0.25"
-strum_macros = { version = "0.25", features = [] }
-log = "0.4.17"
+tonic = "0.13.1"
+prost = "0.13.5"
+prost-types = "0.14.1"
+tokio = { version = "1.44.2", features = ["rt-multi-thread"] }
+serde = { version = "1.0.219", features = ["derive"] }
+serde_json = "1.0.141"
+thiserror = "2.0.12"
+strum = "0.27.1"
+strum_macros = { version = "0.27.1", features = [] }
+log = "0.4.27"
 tokio-stream = "0.1.9"
-async-stream = "0.3.3"
-crossbeam-channel = "0.5"
+async-stream = "0.3.6"
+crossbeam-channel = "0.5.15"
 prettytable-rs = "^0.10"
+futures-core = "0.3.31"
 
 [build-dependencies]
-tonic-build = { version = "0.8.0" }
+tonic-build = { version = "0.13.1" }
+prost-build = { version = "0.13.5" }

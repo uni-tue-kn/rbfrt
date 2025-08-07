@@ -94,7 +94,7 @@ impl From<Status> for RBFRTError {
     fn from(value: Status) -> Self {
         GRPCError {
             message: value.message().to_owned(),
-            details: format!("{:#?}", value),
+            details: format!("{value:#?}"),
         }
     }
 }
