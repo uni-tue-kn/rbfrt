@@ -42,6 +42,21 @@ pub enum Speed {
     BF_SPEED_400G,
 }
 
+impl Speed {
+    pub fn to_u32(&self) -> u32 {
+        match self {
+            Speed::BF_SPEED_1G => 1,
+            Speed::BF_SPEED_10G => 10,
+            Speed::BF_SPEED_20G => 20,
+            Speed::BF_SPEED_25G => 25,
+            Speed::BF_SPEED_40G => 40,
+            Speed::BF_SPEED_50G => 50,
+            Speed::BF_SPEED_100G => 100,
+            Speed::BF_SPEED_400G => 400,
+        }
+    }
+}
+
 /// All possible auto negotiation options for a [Port].
 #[derive(Debug, Clone, EnumString, PartialEq, Deserialize, Serialize)]
 #[allow(non_camel_case_types)]
