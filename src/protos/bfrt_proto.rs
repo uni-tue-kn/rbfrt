@@ -1218,7 +1218,7 @@ pub mod bf_runtime_client {
             self.inner.ready().await.map_err(|e| {
                 tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
             })?;
-            let codec = tonic::codec::ProstCodec::default();
+            let codec = tonic_prost::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static("/bfrt_proto.BfRuntime/Write");
             let mut req = request.into_request();
             req.extensions_mut()
@@ -1236,7 +1236,7 @@ pub mod bf_runtime_client {
             self.inner.ready().await.map_err(|e| {
                 tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
             })?;
-            let codec = tonic::codec::ProstCodec::default();
+            let codec = tonic_prost::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static("/bfrt_proto.BfRuntime/Read");
             let mut req = request.into_request();
             req.extensions_mut()
@@ -1254,7 +1254,7 @@ pub mod bf_runtime_client {
             self.inner.ready().await.map_err(|e| {
                 tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
             })?;
-            let codec = tonic::codec::ProstCodec::default();
+            let codec = tonic_prost::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
                 "/bfrt_proto.BfRuntime/SetForwardingPipelineConfig",
             );
@@ -1276,7 +1276,7 @@ pub mod bf_runtime_client {
             self.inner.ready().await.map_err(|e| {
                 tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
             })?;
-            let codec = tonic::codec::ProstCodec::default();
+            let codec = tonic_prost::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
                 "/bfrt_proto.BfRuntime/GetForwardingPipelineConfig",
             );
@@ -1299,7 +1299,7 @@ pub mod bf_runtime_client {
             self.inner.ready().await.map_err(|e| {
                 tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
             })?;
-            let codec = tonic::codec::ProstCodec::default();
+            let codec = tonic_prost::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static("/bfrt_proto.BfRuntime/StreamChannel");
             let mut req = request.into_streaming_request();
             req.extensions_mut()
@@ -1459,7 +1459,7 @@ pub mod bf_runtime_server {
                     let inner = self.inner.clone();
                     let fut = async move {
                         let method = WriteSvc(inner);
-                        let codec = tonic::codec::ProstCodec::default();
+                        let codec = tonic_prost::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(
                                 accept_compression_encodings,
@@ -1498,7 +1498,7 @@ pub mod bf_runtime_server {
                     let inner = self.inner.clone();
                     let fut = async move {
                         let method = ReadSvc(inner);
-                        let codec = tonic::codec::ProstCodec::default();
+                        let codec = tonic_prost::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(
                                 accept_compression_encodings,
@@ -1541,7 +1541,7 @@ pub mod bf_runtime_server {
                     let inner = self.inner.clone();
                     let fut = async move {
                         let method = SetForwardingPipelineConfigSvc(inner);
-                        let codec = tonic::codec::ProstCodec::default();
+                        let codec = tonic_prost::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(
                                 accept_compression_encodings,
@@ -1584,7 +1584,7 @@ pub mod bf_runtime_server {
                     let inner = self.inner.clone();
                     let fut = async move {
                         let method = GetForwardingPipelineConfigSvc(inner);
-                        let codec = tonic::codec::ProstCodec::default();
+                        let codec = tonic_prost::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(
                                 accept_compression_encodings,
@@ -1627,7 +1627,7 @@ pub mod bf_runtime_server {
                     let inner = self.inner.clone();
                     let fut = async move {
                         let method = StreamChannelSvc(inner);
-                        let codec = tonic::codec::ProstCodec::default();
+                        let codec = tonic_prost::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(
                                 accept_compression_encodings,
