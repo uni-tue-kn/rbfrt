@@ -92,9 +92,20 @@ pub enum Loopback {
 }
 
 impl fmt::Display for Speed {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let s = format!("{self:?}").replace("G_R", "G-R");
-        write!(f, "{}", s)
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let speed = match self {
+            Speed::BF_SPEED_1G => "BF_SPEED_1G",
+            Speed::BF_SPEED_10G => "BF_SPEED_10G",
+            Speed::BF_SPEED_20G => "BF_SPEED_20G",
+            Speed::BF_SPEED_25G => "BF_SPEED_25G",
+            Speed::BF_SPEED_40G => "BF_SPEED_40G",
+            Speed::BF_SPEED_50G => "BF_SPEED_50G",
+            Speed::BF_SPEED_100G => "BF_SPEED_100G",
+            Speed::BF_SPEED_100G_R2 => "BF_SPEED_100G-R2",
+            Speed::BF_SPEED_200G => "BF_SPEED_200G",
+            Speed::BF_SPEED_400G => "BF_SPEED_400G",
+        };
+        write!(f, "{speed}")
     }
 }
 
