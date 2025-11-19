@@ -6,8 +6,7 @@ edition = "2021"
 license = "Apache-2.0"
 description = "Rust library for interaction with Intel Tofino(TM) BFRT switch interface."
 publish = false
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+repository = "https://github.com/uni-tue-kn/rbfrt"
 
 [dependencies]
 tonic = "0.14.2"
