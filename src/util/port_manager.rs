@@ -34,7 +34,6 @@ use strum_macros::EnumString;
 pub enum Speed {
     BF_SPEED_1G,
     BF_SPEED_10G,
-    BF_SPEED_20G,
     BF_SPEED_25G,
     BF_SPEED_40G,
     BF_SPEED_50G,
@@ -48,7 +47,6 @@ impl Speed {
         match self {
             Speed::BF_SPEED_1G => 1,
             Speed::BF_SPEED_10G => 10,
-            Speed::BF_SPEED_20G => 20,
             Speed::BF_SPEED_25G => 25,
             Speed::BF_SPEED_40G => 40,
             Speed::BF_SPEED_50G => 50,
