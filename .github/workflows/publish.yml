@@ -1,0 +1,55 @@
+name: publish
+
+on:
+  push:
+    tags:
+      - "v*.*.*"   # e.g. v0.1.0, v1.2.3, etc.
+
+env:
+  CARGO_TERM_COLOR: always
+  RUSTFLAGS: "-D warnings"
+  RUSTDOCFLAGS: "-D warnings"
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust (stable)
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Check formatting
+        run: cargo fmt --check --all
+
+      - name: Check linting
+        run: cargo clippy --all-targets --all-features
+
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      - name: Verify tag matches Cargo.toml version
+        run: |
+          TAG_VERSION="${GITHUB_REF#refs/tags/v}"
+          TOML_VERSION=$(cargo metadata --no-deps --format-version=1 | jq -r '.packages[0].version')
+
+          echo "Tag version:    $TAG_VERSION"
+          echo "Cargo.toml ver: $TOML_VERSION"
+
+          if [ "$TAG_VERSION" != "$TOML_VERSION" ]; then
+            echo "Tag version and Cargo.toml version do not match!"
+            exit 1
+          fi
+        shell: bash
+
+      - name: Dry run publish
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+        run: cargo publish --dry-run
+
+      - name: Publish to crates.io
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+        run: cargo publish

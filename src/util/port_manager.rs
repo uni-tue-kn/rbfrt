@@ -34,11 +34,11 @@ use strum_macros::EnumString;
 pub enum Speed {
     BF_SPEED_1G,
     BF_SPEED_10G,
-    BF_SPEED_20G,
     BF_SPEED_25G,
     BF_SPEED_40G,
     BF_SPEED_50G,
     BF_SPEED_100G,
+    BF_SPEED_200G,
     BF_SPEED_400G,
 }
 
@@ -47,11 +47,11 @@ impl Speed {
         match self {
             Speed::BF_SPEED_1G => 1,
             Speed::BF_SPEED_10G => 10,
-            Speed::BF_SPEED_20G => 20,
             Speed::BF_SPEED_25G => 25,
             Speed::BF_SPEED_40G => 40,
             Speed::BF_SPEED_50G => 50,
             Speed::BF_SPEED_100G => 100,
+            Speed::BF_SPEED_200G => 200,
             Speed::BF_SPEED_400G => 400,
         }
     }
@@ -120,6 +120,7 @@ pub struct Port {
     dev_port: Option<u32>,
     speed: Speed,
     auto_neg: AutoNegotiation,
+    n_lanes: Option<u32>,
     fec: FEC,
     loopback: Loopback,
     enable: bool,
@@ -134,6 +135,7 @@ impl Port {
             port,
             channel,
             dev_port: None,
+            n_lanes: None,
             speed: Speed::BF_SPEED_1G,
             auto_neg: AutoNegotiation::PM_AN_DEFAULT,
             fec: FEC::BF_FEC_TYP_NONE,
@@ -146,6 +148,14 @@ impl Port {
     /// Sets the speed.
     pub fn speed(self, speed: Speed) -> Port {
         Port { speed, ..self }
+    }
+
+    /// Sets the number of lanes.
+    pub fn n_lanes(self, n_lanes: u32) -> Port {
+        Port {
+            n_lanes: Some(n_lanes),
+            ..self
+        }
     }
 
     /// Sets the loopback mode.
@@ -192,6 +202,11 @@ impl Port {
     /// Returns if the [Port] is enabled.
     pub fn get_enabled(self) -> bool {
         self.enable
+    }
+
+    /// Returns the configured number of lanes.
+    pub fn get_n_lanes(self) -> Option<u32> {
+        self.n_lanes
     }
 
     /// Returns the configured auto negotiation.
@@ -324,6 +339,7 @@ impl PortManager {
             let enable = e.get_action_data("$PORT_ENABLE")?.get_data().to_bool();
             let status = e.get_action_data("$PORT_UP")?.get_data().to_bool();
             let mut loopback = e.get_action_data("$LOOPBACK_MODE")?.get_data().to_string();
+            let n_lanes = e.get_action_data("$N_LANES")?.get_data().to_u32();
 
             // remove strange ascii char e.g., \u17
             fec.retain(|c| c.is_ascii_graphic());
@@ -335,6 +351,7 @@ impl PortManager {
                 port: frontpanel_port.0,
                 channel: frontpanel_port.1,
                 dev_port: Some(dev_port),
+                n_lanes: Some(n_lanes),
                 speed: Speed::from_str(speed.trim()).unwrap(),
                 auto_neg: AutoNegotiation::from_str(auto_neg.trim()).unwrap(),
                 fec: FEC::from_str(&fec).unwrap(),
@@ -357,13 +374,16 @@ impl PortManager {
     ) -> Result<(), RBFRTError> {
         let dev_port = self.dev_port(request.port, request.channel)?;
 
-        let port_req = table::Request::new("$PORT")
+        let mut port_req = table::Request::new("$PORT")
             .match_key("$DEV_PORT", MatchValue::exact(dev_port))
             .action_data("$SPEED", request.speed.to_string())
             .action_data("$FEC", request.fec.to_string())
             .action_data("$PORT_ENABLE", request.enable)
             .action_data("$AUTO_NEGOTIATION", request.auto_neg.to_string())
             .action_data("$LOOPBACK_MODE", request.loopback.to_string());
+        if let Some(n) = request.n_lanes {
+            port_req = port_req.action_data("$N_LANES", n);
+        }
 
         switch.write_table_entry(port_req).await?;
 
@@ -379,7 +399,7 @@ impl PortManager {
         let all_requests: Result<Vec<table::Request>, RBFRTError> = requests
             .iter()
             .map(|request| {
-                let req = table::Request::new("$PORT")
+                let mut req = table::Request::new("$PORT")
                     .match_key(
                         "$DEV_PORT",
                         MatchValue::exact(self.dev_port(request.port, request.channel)?),
@@ -389,6 +409,9 @@ impl PortManager {
                     .action_data("$PORT_ENABLE", request.enable)
                     .action_data("$AUTO_NEGOTIATION", request.auto_neg.to_string())
                     .action_data("$LOOPBACK_MODE", request.loopback.to_string());
+                if let Some(n) = request.n_lanes {
+                    req = req.action_data("$N_LANES", n);
+                }
 
                 Ok(req)
             })
