@@ -5,7 +5,7 @@
 
  ![image](https://img.shields.io/badge/licence-Apache%202.0-blue)
 ![Build with badge](https://img.shields.io/badge/Build_with-Rust-red)
-![image](https://img.shields.io/badge/v-0.1.8alpha-yellow)
+![image](https://img.shields.io/badge/v-0.1.8-yellow)
 [![build](https://github.com/uni-tue-kn/rbfrt/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/uni-tue-kn/rbfrt/actions/workflows/build.yml)
 
 </div>
