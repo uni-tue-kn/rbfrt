@@ -283,7 +283,18 @@ impl PortManager {
     }
     async fn do_init(&mut self, switch: &SwitchConnection) -> Result<(), RBFRTError> {
         let req = table::Request::new("$PORT_STR_INFO");
-        let all_ports = switch.get_table_entries(req).await?;
+
+        // For some reason, the CPU ports are not included if querying without a match key, despite them being present in the $PORT_STR_INFO table.
+        // So we manually query for them.
+        let mut all_port_reqs: Vec<table::Request> = (0..4)
+            .map(|i| {
+                table::Request::new("$PORT_STR_INFO")
+                    .match_key("$PORT_NAME", MatchValue::exact(format!("33/{}", i)))
+            })
+            .collect();
+        all_port_reqs.push(req);
+
+        let all_ports = switch.get_tables_entries(all_port_reqs).await?;
 
         for entry in &all_ports {
             let e = entry.get_action_data("$DEV_PORT")?;
