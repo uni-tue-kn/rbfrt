@@ -63,6 +63,31 @@ pub mod error;
 mod protos;
 pub mod register;
 pub mod table;
+#[cfg(feature = "thrift-support")]
+pub mod thrift_client;
+
+// Generated Thrift code wrappers
+#[cfg(feature = "thrift-support")]
+#[allow(warnings)]
+mod thrift_gen;
+
+// Re-export generated Thrift modules
+#[cfg(feature = "thrift-support")]
+pub use thrift_gen::res;
+
+#[cfg(feature = "thrift-support")]
+pub mod thrift_generated {
+    pub use super::res;
+    pub use super::thrift_gen::conn_mgr_pd_rpc as conn_mgr;
+    pub use super::thrift_gen::devport_mgr_pd_rpc as devport_mgr;
+    pub use super::thrift_gen::mc_pd_rpc as mc;
+    pub use super::thrift_gen::mirror_pd_rpc as mirror;
+    pub use super::thrift_gen::pal_rpc as pal;
+    pub use super::thrift_gen::pipemgr_api as pipemgr;
+    pub use super::thrift_gen::port_mgr_pd_rpc as port_mgr;
+    pub use super::thrift_gen::tm_api as tm;
+    pub use super::thrift_gen::ts_pd_rpc as ts;
+}
 pub mod util;
 
 use crate::bfrt_proto::forwarding_pipeline_config::Profile;

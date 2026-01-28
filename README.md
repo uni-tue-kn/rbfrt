@@ -12,6 +12,7 @@
 
 - [Rust BF Runtime Interface (RBFRT)](#rust-bf-runtime-interface-rbfrt)
   - [Overview](#overview)
+  - [Features](#features)
   - [Documentation](#documentation)
   - [Cite](#cite)
 
@@ -23,6 +24,15 @@ This repository contains the source code of *Rust Barefoot Runtime (RBFRT): Fast
 The RBFRT is a Rust-based control plane library.
 It provides a fast and memory-safe interface to configure the Intel Tofino.
 It uses gRPC and the official Protobuf definitions of the [Open-Tofino](https://github.com/barefootnetworks/Open-Tofino) GitHub repository.
+
+## Features
+
+- **BFRuntime gRPC Interface** - High-level table, register, and digest operations
+- **Thrift PD API Support** (optional) - Low-level platform-dependent operations
+  - Port MTU configuration
+  - Traffic Manager (TM) APIs
+  - Multicast and pipeline management
+  - See [THRIFT.md](THRIFT.md) for setup and usage
 
 ## Documentation
 
