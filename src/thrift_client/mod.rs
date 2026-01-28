@@ -32,27 +32,29 @@
 //! # }
 //! ```
 
-use thrift::protocol::{TBinaryInputProtocol, TBinaryOutputProtocol};
+use thrift::protocol::{TBinaryInputProtocol, TBinaryOutputProtocol, TMultiplexedOutputProtocol};
 use thrift::transport::{
-    ReadHalf, TFramedReadTransport, TFramedWriteTransport, TIoChannel, TTcpChannel, WriteHalf,
+    ReadHalf, TBufferedReadTransport, TBufferedWriteTransport, TIoChannel, TTcpChannel, WriteHalf,
 };
 
 use crate::error::RBFRTError;
 
 /// Type alias for Thrift input protocol
-pub type ThriftInputProtocol = TBinaryInputProtocol<TFramedReadTransport<ReadHalf<TTcpChannel>>>;
+pub type ThriftInputProtocol = TBinaryInputProtocol<TBufferedReadTransport<ReadHalf<TTcpChannel>>>;
 
-/// Type alias for Thrift output protocol
-pub type ThriftOutputProtocol =
-    TBinaryOutputProtocol<TFramedWriteTransport<WriteHalf<TTcpChannel>>>;
+/// Type alias for Thrift output protocol (wrapped with multiplexed protocol for service routing)
+pub type ThriftOutputProtocol = TMultiplexedOutputProtocol<
+    TBinaryOutputProtocol<TBufferedWriteTransport<WriteHalf<TTcpChannel>>>,
+>;
 
 /// Connect to a Thrift service and return protocol layers
 ///
 /// This function handles all the boilerplate of creating a TCP connection
-/// and setting up the Thrift protocol layers.
+/// and setting up the Thrift protocol layers with multiplexed service routing.
 ///
 /// # Arguments
 /// * `address` - Server address in format "host:port" (e.g., "localhost:9090")
+/// * `service_name` - Name of the Thrift service to connect to (e.g., "ts", "port_mgr", "tm")
 ///
 /// # Returns
 /// Returns a tuple of (InputProtocol, OutputProtocol) that can be passed to any Thrift client's new() method
@@ -64,19 +66,22 @@ pub type ThriftOutputProtocol =
 ///
 /// # fn example() -> Result<(), Box<dyn std::error::Error>> {
 /// // Create timestamp client
-/// let (i_prot, o_prot) = thrift_client::connect("localhost:9090")?;
+/// let (i_prot, o_prot) = thrift_client::connect("localhost:9090", "ts")?;
 /// let mut ts_client = TsSyncClient::new(i_prot, o_prot);
 /// ts_client.ts_global_ts_value_set(0, 1_000_000_000)?;
 ///
 /// // Create port manager client
 /// use rbfrt::thrift_generated::port_mgr::PortMgrSyncClient;
-/// let (i_prot, o_prot) = thrift_client::connect("localhost:9090")?;
+/// let (i_prot, o_prot) = thrift_client::connect("localhost:9090", "port_mgr")?;
 /// let mut port_client = PortMgrSyncClient::new(i_prot, o_prot);
 /// port_client.port_mgr_mtu_set(0, 128, 9000, 9000)?;
 /// # Ok(())
 /// # }
 /// ```
-pub fn connect(address: &str) -> Result<(ThriftInputProtocol, ThriftOutputProtocol), RBFRTError> {
+pub fn connect(
+    address: &str,
+    service_name: &str,
+) -> Result<(ThriftInputProtocol, ThriftOutputProtocol), RBFRTError> {
     // Create TCP connection
     let mut channel = TTcpChannel::new();
     channel
@@ -90,9 +95,12 @@ pub fn connect(address: &str) -> Result<(ThriftInputProtocol, ThriftOutputProtoc
         message: format!("Failed to split channel: {}", e),
     })?;
 
-    // Create protocol layers
-    let i_prot = TBinaryInputProtocol::new(TFramedReadTransport::new(i_chan), true);
-    let o_prot = TBinaryOutputProtocol::new(TFramedWriteTransport::new(o_chan), true);
+    // Create protocol layers with buffered transport
+    let i_prot = TBinaryInputProtocol::new(TBufferedReadTransport::new(i_chan), true);
+    let o_prot_base = TBinaryOutputProtocol::new(TBufferedWriteTransport::new(o_chan), true);
+
+    // Wrap output protocol with multiplexed protocol for service routing
+    let o_prot = TMultiplexedOutputProtocol::new(service_name, o_prot_base);
 
     Ok((i_prot, o_prot))
 }
@@ -107,7 +115,7 @@ mod tests {
         // This test ensures the types compile correctly
         // Actual connection would require a running Thrift server
         fn _example() -> Result<(), RBFRTError> {
-            let (i_prot, o_prot) = connect("localhost:9090")?;
+            let (i_prot, o_prot) = connect("localhost:9090", "ts")?;
             let _client = TsSyncClient::new(i_prot, o_prot);
             Ok(())
         }
