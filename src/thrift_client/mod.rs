@@ -23,10 +23,11 @@
 //! use rbfrt::thrift_generated::ts::{TsSyncClient, TTsSyncClient};
 //!
 //! # fn example() -> Result<(), Box<dyn std::error::Error>> {
-//! // Create Thrift client with all protocol setup done
-//! let mut ts_client: TsSyncClient<_, _> = thrift_client::connect("localhost:9090")?;
+//! // Create protocol pair and build a service client from it.
+//! let (i_prot, o_prot) = thrift_client::connect("localhost:9090", "ts")?;
+//! let mut ts_client = TsSyncClient::new(i_prot, o_prot);
 //!
-//! // Use ALL Thrift APIs directly
+//! // Use generated Thrift APIs directly.
 //! ts_client.ts_global_ts_value_set(0, 1_000_000_000)?;
 //! # Ok(())
 //! # }
