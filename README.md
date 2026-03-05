@@ -33,6 +33,11 @@ It uses gRPC and the official Protobuf definitions of the [Open-Tofino](https://
   - Traffic Manager (TM) APIs
   - Multicast and pipeline management
 
+  To enable the optional Thrift PD API support in your project, activate the `thrift-support` feature:
+
+  ```toml
+  [dependencies]
+  rbfrt = { version = "0.1.9", features = ["thrift-support"] }
 ## Documentation
 
 The documentation of this crate is deployed as a [GitHub page](https://uni-tue-kn.github.io/rbfrt/rbfrt/).
