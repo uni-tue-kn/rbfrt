@@ -28,6 +28,35 @@ use std::str::FromStr;
 use std::{fmt, str};
 use strum_macros::EnumString;
 
+const PORT_STR_INFO_TABLE: &str = "$PORT_STR_INFO";
+const PORT_NAME_KEY: &str = "$PORT_NAME";
+const CPU_PORT_NAMES_ENV: &str = "RBFRT_CPU_PORT_NAMES";
+const DEFAULT_CPU_PORT_FRONT_PANEL: u32 = 33;
+const DEFAULT_CPU_PORT_CHANNEL_COUNT: u8 = 4;
+
+fn parse_cpu_port_names(value: &str) -> Vec<String> {
+    value
+        .split(',')
+        .map(str::trim)
+        .filter(|name| !name.is_empty())
+        .map(str::to_owned)
+        .collect()
+}
+
+fn default_cpu_port_names() -> Vec<String> {
+    (0..DEFAULT_CPU_PORT_CHANNEL_COUNT)
+        .map(|channel| format!("{DEFAULT_CPU_PORT_FRONT_PANEL}/{channel}"))
+        .collect()
+}
+
+fn cpu_port_names_for_lookup() -> Vec<String> {
+    std::env::var(CPU_PORT_NAMES_ENV)
+        .ok()
+        .map(|value| parse_cpu_port_names(&value))
+        .filter(|ports| !ports.is_empty())
+        .unwrap_or_else(default_cpu_port_names)
+}
+
 /// All possible [Port] speeds to configure.
 #[derive(Debug, Clone, EnumString, PartialEq, Deserialize, Serialize)]
 #[allow(non_camel_case_types)]
@@ -282,14 +311,16 @@ impl PortManager {
         }
     }
     async fn do_init(&mut self, switch: &SwitchConnection) -> Result<(), RBFRTError> {
-        let req = table::Request::new("$PORT_STR_INFO");
+        let req = table::Request::new(PORT_STR_INFO_TABLE);
 
-        // For some reason, the CPU ports are not included if querying without a match key, despite them being present in the $PORT_STR_INFO table.
-        // So we manually query for them.
-        let mut all_port_reqs: Vec<table::Request> = (0..4)
-            .map(|i| {
-                table::Request::new("$PORT_STR_INFO")
-                    .match_key("$PORT_NAME", MatchValue::exact(format!("33/{}", i)))
+        // Some targets omit CPU ports from an unfiltered $PORT_STR_INFO dump.
+        // Query expected CPU port names explicitly and merge with the full dump.
+        // Override the defaults via RBFRT_CPU_PORT_NAMES, e.g. "33/0,33/1,33/2,33/3".
+        let mut all_port_reqs: Vec<table::Request> = cpu_port_names_for_lookup()
+            .into_iter()
+            .map(|port_name| {
+                table::Request::new(PORT_STR_INFO_TABLE)
+                    .match_key(PORT_NAME_KEY, MatchValue::exact(port_name))
             })
             .collect();
         all_port_reqs.push(req);
@@ -300,7 +331,7 @@ impl PortManager {
             let e = entry.get_action_data("$DEV_PORT")?;
             let port_number = u32::from_be_bytes(e.get_data()[0..4].try_into().unwrap());
 
-            let key = entry.get_key("$PORT_NAME")?;
+            let key = entry.get_key(PORT_NAME_KEY)?;
 
             let port_name = str::from_utf8(match &key {
                 MatchValue::ExactValue { bytes } => bytes,
@@ -528,5 +559,22 @@ impl PortManager {
                 name: format!("{dev_port}"),
             })
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{default_cpu_port_names, parse_cpu_port_names};
+
+    #[test]
+    fn parses_cpu_port_names_csv() {
+        let names = parse_cpu_port_names("33/0, 33/1 , ,33/2");
+        assert_eq!(names, vec!["33/0", "33/1", "33/2"]);
+    }
+
+    #[test]
+    fn default_cpu_port_names_are_documented_range() {
+        let names = default_cpu_port_names();
+        assert_eq!(names, vec!["33/0", "33/1", "33/2", "33/3"]);
     }
 }
