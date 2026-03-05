@@ -71,7 +71,7 @@ pub type ThriftOutputProtocol = TMultiplexedOutputProtocol<
 /// ts_client.ts_global_ts_value_set(0, 1_000_000_000)?;
 ///
 /// // Create port manager client
-/// use rbfrt::thrift_generated::port_mgr::PortMgrSyncClient;
+/// use rbfrt::thrift_generated::port_mgr::{PortMgrSyncClient, TPortMgrSyncClient};
 /// let (i_prot, o_prot) = thrift_client::connect("localhost:9090", "port_mgr")?;
 /// let mut port_client = PortMgrSyncClient::new(i_prot, o_prot);
 /// port_client.port_mgr_mtu_set(0, 128, 9000, 9000)?;
