@@ -32,7 +32,6 @@ It uses gRPC and the official Protobuf definitions of the [Open-Tofino](https://
   - Port MTU configuration
   - Traffic Manager (TM) APIs
   - Multicast and pipeline management
-  - See [THRIFT.md](THRIFT.md) for setup and usage
 
 ## Documentation
 
