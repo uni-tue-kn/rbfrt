@@ -257,6 +257,11 @@ impl Port {
     pub fn get_frontpanel_port(&self) -> (u32, u8) {
         (self.port, self.channel)
     }
+
+    /// Returns the current status of the `port` number. `true` if the port is up, `false` otherwise.
+    pub fn get_status(&self) -> bool {
+        self.status
+    }
 }
 
 /// Manager to add, update, delete, ... [Ports](Port) of the connected switch.
