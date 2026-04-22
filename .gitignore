@@ -1,6 +1,9 @@
 # Created by https://www.toptal.com/developers/gitignore/api/rust,visualstudiocode,osx
 # Edit at https://www.toptal.com/developers/gitignore?templates=rust,visualstudiocode,osx
 
+thrift/
+proto/
+
 ### OSX ###
 # General
 .DS_Store

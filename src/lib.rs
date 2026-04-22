@@ -212,8 +212,8 @@ impl SwitchConnectionBuilder {
             Ok(client) => {
                 let bf_client = Mutex::new(
                     client
-                        .max_decoding_message_size(16 * 1024 * 1024)
-                        .max_encoding_message_size(16 * 1024 * 1024),
+                        .max_decoding_message_size(32 * 1024 * 1024)
+                        .max_encoding_message_size(32 * 1024 * 1024),
                 );
 
                 let (request_tx, request_rx) =
