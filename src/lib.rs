@@ -424,18 +424,27 @@ impl SwitchConnection {
             warn!("Notification endpoint hang.")
         }
 
-        let msg = response_rx.recv().await.unwrap();
+        // The sender is dropped if the stream channel could not be opened;
+        // report an error instead of panicking in that case.
+        let msg = response_rx.recv().await.ok_or(RBFRTError::GenericError {
+            message: "Stream channel to the switch closed before the subscription was confirmed."
+                .to_owned(),
+        })?;
 
-        match msg.update.unwrap() {
-            Update::Subscribe(sub) => {
-                if sub.status.unwrap().code != 0 {
-                    panic!("Notification subscription failed.");
+        match msg.update {
+            Some(Update::Subscribe(sub)) => {
+                if sub.status.is_none_or(|s| s.code != 0) {
+                    return Err(RBFRTError::GenericError {
+                        message: "Notification subscription failed.".to_owned(),
+                    });
                 } else {
                     info!("Notification subscription successful.")
                 }
             }
             _ => {
-                panic!("Notification subscription expected.");
+                return Err(RBFRTError::GenericError {
+                    message: "Notification subscription response expected.".to_owned(),
+                });
             }
         }
 
