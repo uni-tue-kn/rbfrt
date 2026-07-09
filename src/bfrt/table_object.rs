@@ -32,7 +32,6 @@ use crate::error::RBFRTError::{
 };
 use crate::protos::bfrt_proto::TargetDevice;
 use crate::table::{MatchValue, Request, TableEntry, ToBytes};
-use prost::Message;
 use serde::Deserialize;
 use std::collections::HashMap;
 
@@ -416,9 +415,9 @@ impl BFRTTableObject {
                                 // convert values to appropriate byte representation
                                 match f.value.as_ref().unwrap() {
                                     data_field::Value::Stream(s) => s.to_vec(),
-                                    data_field::Value::StrVal(s) => s.encode_to_vec(),
-                                    data_field::Value::BoolVal(b) => b.encode_to_vec(),
-                                    data_field::Value::FloatVal(f) => f.encode_to_vec(),
+                                    data_field::Value::StrVal(s) => s.as_bytes().to_vec(),
+                                    data_field::Value::BoolVal(b) => vec![*b as u8],
+                                    data_field::Value::FloatVal(f) => f.to_be_bytes().to_vec(),
                                     data_field::Value::IntArrVal(i) => i.val.clone().to_bytes(),
                                     _ => unimplemented!(
                                         "Not yet implemented. {:?}",

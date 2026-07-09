@@ -29,13 +29,13 @@ pub enum RBFRTError {
     ConnectionError {
         ip: String,
         port: u16,
-        orig_e: Box<dyn Error>,
+        orig_e: Box<dyn Error + Send + Sync>,
     },
     #[error("Unable to get forwarding pipeline for device_id {device_id} and client_id {client_id}. Original: `{orig_e}`")]
     GetForwardingPipelineError {
         device_id: u32,
         client_id: u32,
-        orig_e: Box<dyn Error>,
+        orig_e: Box<dyn Error + Send + Sync>,
     },
     #[error("P4 program {name} does not exist.")]
     P4ProgramError { name: String },
@@ -82,7 +82,7 @@ pub enum RBFRTError {
     #[error("Cannot convert Bytes to {target}. Original: `{orig_e}`")]
     ByteConversionError {
         target: String,
-        orig_e: Box<dyn Error>,
+        orig_e: Box<dyn Error + Send + Sync>,
     },
     #[error("Switch request is empty.")]
     RequestEmpty {},
@@ -98,6 +98,3 @@ impl From<Status> for RBFRTError {
         }
     }
 }
-
-unsafe impl Send for RBFRTError {}
-unsafe impl Sync for RBFRTError {}

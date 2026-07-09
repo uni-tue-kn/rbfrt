@@ -876,19 +876,30 @@ impl SwitchConnection {
     ) -> Result<Register, RBFRTError> {
         debug!("Read register {requests:?}");
 
-        let name = requests.first().as_ref().unwrap().get_name();
+        let name = match requests.first() {
+            Some(request) => request.get_name(),
+            None => return Err(RequestEmpty {}),
+        };
+
+        if requests.iter().any(|r| r.get_name() != name) {
+            return Err(RBFRTError::GenericError {
+                message: "All register requests in one call must target the same register."
+                    .to_owned(),
+            });
+        }
 
         let mut req = vec![];
 
         for request in &requests {
-            let table_request = Request::new(request.get_name()).request_type(RequestType::Read);
+            let mut table_request =
+                Request::new(request.get_name()).request_type(RequestType::Read);
 
-            if request.get_index().is_some() {
-                req.push(table_request.match_key(
-                    "$REGISTER_INDEX",
-                    MatchValue::exact(request.get_index().unwrap()),
-                ));
+            if let Some(index) = request.get_index() {
+                table_request =
+                    table_request.match_key("$REGISTER_INDEX", MatchValue::exact(*index));
             }
+
+            req.push(table_request);
         }
 
         let entries = self.get_tables_entries(req).await?;
