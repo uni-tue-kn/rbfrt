@@ -374,8 +374,6 @@ impl SwitchConnection {
         let req = tonic::Request::new(stream);
 
         let mut clone = { self.bf_client.lock().await.clone() };
-        let ack_channel = self.send_channel.clone();
-        let client_id = self.client_id;
 
         // start thread to listen for notifications
         tokio::spawn(async move {
@@ -392,30 +390,12 @@ impl SwitchConnection {
             loop {
                 match resp.message().await {
                     Ok(Some(msg)) => match &msg.update {
-                        Some(Update::Digest(digest)) => {
-                            // the switch frees its learn filter buffers only after an ack;
-                            // without it, digest delivery stalls once the buffers fill up
-                            let ack = StreamMessageRequest {
-                                client_id,
-                                update: Some(
-                                    bfrt_proto::stream_message_request::Update::DigestAck(
-                                        bfrt_proto::DigestListAck {
-                                            digest_id: digest.digest_id,
-                                            list_id: digest.list_id,
-                                        },
-                                    ),
-                                ),
-                            };
-
-                            if ack_channel.send(ack).await.is_err() {
-                                warn!("Failed to ack digest: stream request channel closed.");
-                            }
-
-                            if let Err(e) = response_tx.try_send(msg) {
-                                warn!("Failed to send notification: {e}");
-                            }
-                        }
-                        Some(Update::Subscribe(_)) => {
+                        // Do NOT send a DigestListAck for digests: the bfruntime
+                        // server (at least up to SDE 9.13.x) does not implement it
+                        // and errors the whole stream with BF_NOT_IMPLEMENTED,
+                        // tearing down the connection. Learn digests are acked
+                        // automatically on the server side.
+                        Some(Update::Digest(_)) | Some(Update::Subscribe(_)) => {
                             if let Err(e) = response_tx.try_send(msg) {
                                 warn!("Failed to send notification: {e}");
                             }
