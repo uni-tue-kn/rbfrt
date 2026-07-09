@@ -208,10 +208,29 @@ impl SwitchConnectionBuilder {
             self.ip, self.port
         );
 
-        match BfRuntimeClient::connect(format!("http://{}:{}", self.ip, self.port)).await {
-            Ok(client) => {
+        let endpoint = match tonic::transport::Endpoint::from_shared(format!(
+            "http://{}:{}",
+            self.ip, self.port
+        )) {
+            // bf_switchd returns per-entry errors of batched requests in the
+            // gRPC status trailers, which can grow into a large header block.
+            // With the default limit, h2's CONTINUATION flood protection then
+            // closes the whole connection (GOAWAY "too_many_continuations")
+            // instead of surfacing the error on the failing request.
+            Ok(endpoint) => endpoint.http2_max_header_list_size(16 * 1024 * 1024),
+            Err(e) => {
+                return Err(ConnectionError {
+                    ip: self.ip,
+                    port: self.port,
+                    orig_e: Box::new(e),
+                })
+            }
+        };
+
+        match endpoint.connect().await {
+            Ok(channel) => {
                 let bf_client = Mutex::new(
-                    client
+                    BfRuntimeClient::new(channel)
                         .max_decoding_message_size(32 * 1024 * 1024)
                         .max_encoding_message_size(32 * 1024 * 1024),
                 );
