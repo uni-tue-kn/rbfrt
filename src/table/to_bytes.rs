@@ -164,17 +164,14 @@ impl ToBytes for Vec<u8> {
     }
 
     fn to_int_arr(&self) -> Vec<u32> {
-        let mut ret = vec![];
-        for (i, v) in self.iter().enumerate().step_by(4) {
-            // TODO dont do unsafe ...
-            ret.push(unsafe {
-                u32::from_be_bytes([
-                    *v,
-                    *self.get_unchecked(i + 1),
-                    *self.get_unchecked(i + 2),
-                    *self.get_unchecked(i + 3),
-                ])
-            });
+        let (chunks, remainder) = self.as_chunks::<4>();
+        let mut ret: Vec<u32> = chunks.iter().map(|c| u32::from_be_bytes(*c)).collect();
+
+        // a trailing chunk of less than 4 bytes is interpreted as a big-endian value
+        if !remainder.is_empty() {
+            let mut padded = [0u8; 4];
+            padded[4 - remainder.len()..].copy_from_slice(remainder);
+            ret.push(u32::from_be_bytes(padded));
         }
 
         ret

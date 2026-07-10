@@ -42,7 +42,8 @@ impl BFRTFieldType {
             "uint8" => 8,
             "bytes" => self.width.unwrap(),
             "bool" => 1,
-            "string" => 32, // strings are handled seperately
+            // strings have no fixed width; u32::MAX makes Convert pass them through unpadded
+            "string" => u32::MAX,
             _ => panic!("Unknown width type: {}", self.r#type.as_str()),
         }
     }

@@ -5,7 +5,7 @@
 
  ![image](https://img.shields.io/badge/licence-Apache%202.0-blue)
 ![Build with badge](https://img.shields.io/badge/Build_with-Rust-red)
-![image](https://img.shields.io/badge/v-0.1.9-yellow)
+![image](https://img.shields.io/badge/v-0.1.11-yellow)
 [![build](https://github.com/uni-tue-kn/rbfrt/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/uni-tue-kn/rbfrt/actions/workflows/build.yml)
 
 </div>
@@ -13,8 +13,6 @@
 - [Rust BF Runtime Interface (RBFRT)](#rust-bf-runtime-interface-rbfrt)
   - [Overview](#overview)
   - [Features](#features)
-  - [Documentation](#documentation)
-  - [Cite](#cite)
 
 
 ## Overview
@@ -37,7 +35,8 @@ It uses gRPC and the official Protobuf definitions of the [Open-Tofino](https://
 
   ```toml
   [dependencies]
-  rbfrt = { version = "0.1.9", features = ["thrift-support"] }
+  rbfrt = { version = "0.1.11", features = ["thrift-support"] }
+
 ## Documentation
 
 The documentation of this crate is deployed as a [GitHub page](https://uni-tue-kn.github.io/rbfrt/rbfrt/).

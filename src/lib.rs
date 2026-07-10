@@ -208,10 +208,29 @@ impl SwitchConnectionBuilder {
             self.ip, self.port
         );
 
-        match BfRuntimeClient::connect(format!("http://{}:{}", self.ip, self.port)).await {
-            Ok(client) => {
+        let endpoint = match tonic::transport::Endpoint::from_shared(format!(
+            "http://{}:{}",
+            self.ip, self.port
+        )) {
+            // bf_switchd returns per-entry errors of batched requests in the
+            // gRPC status trailers, which can grow into a large header block.
+            // With the default limit, h2's CONTINUATION flood protection then
+            // closes the whole connection (GOAWAY "too_many_continuations")
+            // instead of surfacing the error on the failing request.
+            Ok(endpoint) => endpoint.http2_max_header_list_size(16 * 1024 * 1024),
+            Err(e) => {
+                return Err(ConnectionError {
+                    ip: self.ip,
+                    port: self.port,
+                    orig_e: Box::new(e),
+                })
+            }
+        };
+
+        match endpoint.connect().await {
+            Ok(channel) => {
                 let bf_client = Mutex::new(
-                    client
+                    BfRuntimeClient::new(channel)
                         .max_decoding_message_size(32 * 1024 * 1024)
                         .max_encoding_message_size(32 * 1024 * 1024),
                 );
@@ -370,8 +389,13 @@ impl SwitchConnection {
 
             loop {
                 match resp.message().await {
-                    Ok(Some(msg)) => match msg.clone().update.unwrap() {
-                        Update::Subscribe(_) | Update::Digest(_) => {
+                    Ok(Some(msg)) => match &msg.update {
+                        // Do NOT send a DigestListAck for digests: the bfruntime
+                        // server (at least up to SDE 9.13.x) does not implement it
+                        // and errors the whole stream with BF_NOT_IMPLEMENTED,
+                        // tearing down the connection. Learn digests are acked
+                        // automatically on the server side.
+                        Some(Update::Digest(_)) | Some(Update::Subscribe(_)) => {
                             if let Err(e) = response_tx.try_send(msg) {
                                 warn!("Failed to send notification: {e}");
                             }
@@ -400,18 +424,27 @@ impl SwitchConnection {
             warn!("Notification endpoint hang.")
         }
 
-        let msg = response_rx.recv().await.unwrap();
+        // The sender is dropped if the stream channel could not be opened;
+        // report an error instead of panicking in that case.
+        let msg = response_rx.recv().await.ok_or(RBFRTError::GenericError {
+            message: "Stream channel to the switch closed before the subscription was confirmed."
+                .to_owned(),
+        })?;
 
-        match msg.update.unwrap() {
-            Update::Subscribe(sub) => {
-                if sub.status.unwrap().code != 0 {
-                    panic!("Notification subscription failed.");
+        match msg.update {
+            Some(Update::Subscribe(sub)) => {
+                if sub.status.is_none_or(|s| s.code != 0) {
+                    return Err(RBFRTError::GenericError {
+                        message: "Notification subscription failed.".to_owned(),
+                    });
                 } else {
                     info!("Notification subscription successful.")
                 }
             }
             _ => {
-                panic!("Notification subscription expected.");
+                return Err(RBFRTError::GenericError {
+                    message: "Notification subscription response expected.".to_owned(),
+                });
             }
         }
 
@@ -876,19 +909,30 @@ impl SwitchConnection {
     ) -> Result<Register, RBFRTError> {
         debug!("Read register {requests:?}");
 
-        let name = requests.first().as_ref().unwrap().get_name();
+        let name = match requests.first() {
+            Some(request) => request.get_name(),
+            None => return Err(RequestEmpty {}),
+        };
+
+        if requests.iter().any(|r| r.get_name() != name) {
+            return Err(RBFRTError::GenericError {
+                message: "All register requests in one call must target the same register."
+                    .to_owned(),
+            });
+        }
 
         let mut req = vec![];
 
         for request in &requests {
-            let table_request = Request::new(request.get_name()).request_type(RequestType::Read);
+            let mut table_request =
+                Request::new(request.get_name()).request_type(RequestType::Read);
 
-            if request.get_index().is_some() {
-                req.push(table_request.match_key(
-                    "$REGISTER_INDEX",
-                    MatchValue::exact(request.get_index().unwrap()),
-                ));
+            if let Some(index) = request.get_index() {
+                table_request =
+                    table_request.match_key("$REGISTER_INDEX", MatchValue::exact(*index));
             }
+
+            req.push(table_request);
         }
 
         let entries = self.get_tables_entries(req).await?;
