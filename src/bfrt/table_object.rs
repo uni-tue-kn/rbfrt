@@ -242,7 +242,7 @@ impl BFRTTableObject {
             entity: Some(entity::Entity::TableEntry(bfrt_proto::TableEntry {
                 table_id: self.id,
                 data: None,
-                is_default_entry: false,
+                is_default_entry: request.is_default(),
                 table_read_flag: None,
                 table_mod_inc_flag: None,
                 entry_tgt: if let Some(pipe) = request.get_pipe() {
